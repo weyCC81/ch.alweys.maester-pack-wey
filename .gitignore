@@ -3,3 +3,5 @@ TestResults/
 test-results/
 maester-config.json
 TEST.ps1
+branding/*.png
+RELEASE.ps1

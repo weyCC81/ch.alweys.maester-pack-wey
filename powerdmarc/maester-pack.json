@@ -3,8 +3,8 @@
   "Id": "weycc81.powerdmarc",
   "Guid": "bf29242e-9eac-4e0b-8a4d-6719c83ab38d",
   "Name": "PowerDMARC",
-  "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing.",
-  "Version": "1.0.0",
+  "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing. By Alweys C//oud (alweys.ch).",
+  "Version": "1.0.1",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/powerdmarc",
@@ -45,8 +45,11 @@
     ]
   },
   "Categories": [
+    "Exchange Online",
     "Email security",
-    "DMARC"
+    "DMARC",
+    "SPF"
   ],
-  "Banner": "assets/banner.png"
+  "Banner": "assets/banner.png",
+  "Guide": "maester-pack.guide.json"
 }

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-guide-1.0.json",
+  "Summary": "Checks the Hosted SPF (PowerSPF) record of every domain in PowerDMARC: at most 10 DNS lookups and 2 void lookups, no errors, and an -all or ~all ending. One result per domain, grouped by customer account for resellers. Reads only; changes nothing.",
+  "Prerequisites": [
+    { "Text": "A PowerDMARC Personal Access Token (API Settings > Personal Access Tokens), or for resellers an MSSP token (API Settings > Manage API Tokens)." },
+    { "Text": "Maester installs the PowerDMARC module 0.1.1 from the PowerShell Gallery with the pack." }
+  ],
+  "Connect": {
+    "Steps": [
+      {
+        "Text": "End user: the domains of the token's own account.",
+        "Command": "Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }"
+      },
+      {
+        "Text": "Reseller (MSSP): every customer account on your portal, or one with AccountId.",
+        "Command": "Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token'); Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com' }"
+      }
+    ]
+  },
+  "Run": {
+    "Commands": [
+      { "Text": "Run the pack on its own.", "Command": "Invoke-Maester -Pack WEY.DMARC -SkipBuiltIn" }
+    ],
+    "Options": [
+      { "Name": "MaximumLookups", "Default": "10", "Text": "The most DNS lookups the SPF record may need (1 to 10)." },
+      { "Name": "MaximumVoidLookups", "Default": "2", "Text": "The most lookups that may return nothing." },
+      { "Name": "RequireHardFail", "Default": "false", "Text": "Accept only -all; by default ~all passes too." }
+    ]
+  },
+  "AppOnly": {
+    "Supported": true,
+    "Text": "Runs unattended with the token in the MAESTER_WEY_DMARC_POWERDMARC_APITOKEN environment variable (and _MODE, _BASEURI, _ACCOUNTID as needed). No Microsoft sign-in is needed."
+  },
+  "Support": {
+    "Pack": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues"
+  }
+}

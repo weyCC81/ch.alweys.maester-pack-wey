@@ -1,6 +1,7 @@
-# Maester packs by alweys
+# Maester packs by Alweys C//oud
 
-[Maester Packs](https://maester.dev/docs/next/packs), one per folder.
+[Maester Packs](https://maester.dev/docs/next/packs) by [Alweys C//oud](https://www.alweys.ch), one per folder.
+Ensure that your cloud is always oriented the right way!
 
 | Pack | Code | Install |
 | --- | --- | --- |

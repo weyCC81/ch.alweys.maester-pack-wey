@@ -1,6 +1,8 @@
-![PowerDMARC Maester pack](assets/banner.png)
+![PowerDMARC Maester pack by Alweys C//oud](assets/banner.png)
 
 # PowerDMARC Maester pack
+
+**by [Alweys C//oud](https://www.alweys.ch): ensure that your cloud is always oriented the right way.**
 
 A [Maester Pack](https://maester.dev/docs/next/packs) that checks the email authentication
 [PowerDMARC](https://powerdmarc.com) manages for your domains. It reads through the PowerDMARC API with the
@@ -101,3 +103,9 @@ A test is a Maester native test: see [Writing native tests](https://maester.dev/
 | `assets/banner.png` | The image the pack index shows when it features the pack |
 
 Security issues: see the [security policy](../SECURITY.md).
+
+## About
+
+Made by Stefan Wey, trainer and solution engineer at [Alweys C//oud](https://www.alweys.ch), who writes there about
+Microsoft 365 mail security, identity and collaboration. Also by Alweys C//oud: the
+[PowerDMARC PowerShell module](https://www.powershellgallery.com/packages/PowerDMARC) this pack uses.
