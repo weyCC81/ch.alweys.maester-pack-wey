@@ -20,6 +20,9 @@ jobs:
   release:
     if: vars.PACK_RELEASES == 'true'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: powerdmarc
     permissions:
       contents: write
     steps:

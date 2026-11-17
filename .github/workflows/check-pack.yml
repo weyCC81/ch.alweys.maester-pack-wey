@@ -22,6 +22,9 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: powerdmarc
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,6 +59,10 @@ jobs:
           if ($manifest.Publisher -in 'maester', 'maester365') {
             Write-Output '::notice::Invoke-MtTest -Path does not run packs of the reserved maester365 publisher; skipped.'
             return
+          }
+          # Invoke-MtTest -Path needs the modules the pack pins in Uses.Modules (Install-MtPack saves them for users).
+          foreach ($m in @($manifest.Uses.Modules | Where-Object { -not ($_.PSObject.Properties['Install'] -and $_.Install -eq 'User') })) {
+            Install-PSResource -Name $m.Name -Version $m.Version -TrustRepository -Quiet
           }
           $results = @(Invoke-MtTest -Path .)
           $results | Format-Table Id, Result, ReasonCode -AutoSize | Out-String -Width 200

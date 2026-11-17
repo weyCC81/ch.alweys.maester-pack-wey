@@ -28,6 +28,9 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       !github.event.pull_request.draft
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: powerdmarc
     permissions:
       contents: write
       pull-requests: read
@@ -58,7 +61,7 @@ jobs:
           $part = if ($labels -contains 'release:major') { 'major' } elseif ($labels -contains 'release:minor') { 'minor' } else { 'patch' }
 
           git fetch --quiet origin main
-          $base = [version](git show origin/main:maester-pack.json | ConvertFrom-Json).Version
+          $base = [version](git show origin/main:./maester-pack.json | ConvertFrom-Json).Version
           $text = Get-Content -LiteralPath maester-pack.json -Raw
           $current = [version]($text | ConvertFrom-Json).Version
           $next = switch ($part) {
@@ -81,7 +84,7 @@ jobs:
           $log = Get-Content -LiteralPath CHANGELOG.md -Raw
           $unreleased = [regex]'(?m)^## Unreleased[ \t]*\r?$'
           $earlier = [regex]('(?m)^## ' + [regex]::Escape([string]$current) + '[ \t]*\r?$')
-          $mainLog = (git show origin/main:CHANGELOG.md) -join "`n"
+          $mainLog = (git show origin/main:./CHANGELOG.md) -join "`n"
           if ($unreleased.IsMatch($log)) {
             $log = $unreleased.Replace($log, "## $next", 1)
           } elseif ($current -gt $base -and $earlier.IsMatch($log) -and -not $earlier.IsMatch($mainLog)) {
