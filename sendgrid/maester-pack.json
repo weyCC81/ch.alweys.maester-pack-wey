@@ -1,0 +1,51 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-1.0.json",
+  "Id": "weycc81.sendgrid",
+  "Guid": "27789226-bb41-45c2-8d15-3890bdde3f6b",
+  "Name": "SendGrid",
+  "Description": "Checks the security of a Twilio SendGrid account: authenticated sender domains are validated, API keys have least privilege, Enforced TLS is on, and the account and its IPs are in the EU. Reads the SendGrid API (global or EU) with a read-only key and changes nothing. By Alweys C//oud (alweys.ch).",
+  "Version": "1.0.0",
+  "Publisher": "weycc81",
+  "License": "MIT",
+  "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/sendgrid",
+  "Support": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues",
+  "SecurityContact": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/security/advisories/new",
+  "RequiresMaester": ">=3.0",
+  "Code": "WEY.SENDGRID",
+  "Suites": [
+    "tests"
+  ],
+  "Helpers": [
+    "helpers"
+  ],
+  "Connectors": [
+    {
+      "Service": "WEY.SENDGRID.Api",
+      "DisplayName": "SendGrid",
+      "File": "connector/Connect-WeySendGrid.ps1",
+      "Connect": "Connect-WeySendGrid",
+      "Test": "Test-WeySendGrid",
+      "Disconnect": "Disconnect-WeySendGrid"
+    }
+  ],
+  "Uses": {
+    "Services": [
+      "WEY.SENDGRID.Api"
+    ],
+    "GraphScopes": [],
+    "TenantWrites": [],
+    "Network": [
+      "api.sendgrid.com",
+      "api.eu.sendgrid.com"
+    ],
+    "Modules": []
+  },
+  "Categories": [
+    "Email security",
+    "SendGrid",
+    "DMARC",
+    "Data residency"
+  ],
+  "Banner": "assets/banner.png",
+  "Guide": "maester-pack.guide.json"
+}

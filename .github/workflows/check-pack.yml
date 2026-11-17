@@ -22,9 +22,15 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
+    # One job per pack folder in this repository.
+    strategy:
+      fail-fast: false
+      matrix:
+        pack: [powerdmarc, sendgrid]
+    name: check (${{ matrix.pack }})
     defaults:
       run:
-        working-directory: powerdmarc
+        working-directory: ${{ matrix.pack }}
     steps:
       - uses: actions/checkout@v4
         with:

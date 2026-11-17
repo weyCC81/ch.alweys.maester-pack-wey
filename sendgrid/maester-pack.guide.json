@@ -1,0 +1,37 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-guide-1.0.json",
+  "Summary": "Checks the security of a Twilio SendGrid account: every authenticated domain is validated (DKIM and DMARC alignment), API keys have least privilege, Enforced TLS is on, and the account, subusers and dedicated IPs are in the EU. Reads only; changes nothing.",
+  "Prerequisites": [
+    { "Text": "A SendGrid API key with Restricted Access and read scopes only: whitelabel.read, api_keys.read, user.settings.enforced_tls.read, subusers.read, ips.read. A test whose scope is missing is skipped and says so." },
+    { "Text": "No PowerShell module: the pack calls api.sendgrid.com or api.eu.sendgrid.com itself." }
+  ],
+  "Connect": {
+    "Steps": [
+      {
+        "Text": "Global account.",
+        "Command": "Connect-Maester -Service WEY.SENDGRID.Api -ServiceSetting @{ ApiKey = (Read-Host -AsSecureString 'SendGrid API key') }"
+      },
+      {
+        "Text": "EU regional account or subuser (data residency in the EU).",
+        "Command": "Connect-Maester -Service WEY.SENDGRID.Api -ServiceSetting @{ ApiKey = (Read-Host -AsSecureString 'SendGrid API key'); Region = 'EU' }"
+      }
+    ]
+  },
+  "Run": {
+    "Commands": [
+      { "Text": "Run the pack on its own.", "Command": "Invoke-Maester -Pack WEY.SENDGRID -SkipBuiltIn" }
+    ],
+    "Options": [
+      { "Name": "MaximumScopes", "Default": "60", "Text": "MP.WEY.SENDGRID.1002: the most scopes an API key may have." },
+      { "Name": "RequireValidCertificate", "Default": "false", "Text": "MP.WEY.SENDGRID.1003: also require a valid certificate from receiving servers." },
+      { "Name": "MinimumVersion", "Default": "1.2", "Text": "MP.WEY.SENDGRID.1003: the lowest TLS version SendGrid may use." }
+    ]
+  },
+  "AppOnly": {
+    "Supported": true,
+    "Text": "Runs unattended with the key in the MAESTER_WEY_SENDGRID_API_APIKEY environment variable (and MAESTER_WEY_SENDGRID_API_REGION = EU for an EU account). No Microsoft sign-in is needed."
+  },
+  "Support": {
+    "Pack": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues"
+  }
+}
