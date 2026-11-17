@@ -1,11 +1,11 @@
 {
   "$schema": "https://maester.dev/schemas/maester-pack-1.0.json",
-  "Id": "alweys.powerdmarc",
+  "Id": "weycc81.powerdmarc",
   "Guid": "bf29242e-9eac-4e0b-8a4d-6719c83ab38d",
   "Name": "PowerDMARC",
   "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing.",
   "Version": "1.0.0",
-  "Publisher": "alweys",
+  "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/powerdmarc",
   "Support": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues",

@@ -14,20 +14,9 @@ function Get-WeyDmarcDomain {
     param()
 
     $state = Connect-WeyDmarcPowerDmarcModule
-    $toDomain = {
-        param($domain, $accountId, $accountName)
-        if ($null -eq $domain) { return }
-        $name = if ($domain.PSObject.Properties['domain'] -and $domain.domain) { [string]$domain.domain } else { [string]$domain.name }
-        [pscustomobject]@{
-            Id          = [int]$domain.id
-            Name        = $name.Trim().TrimEnd('.').ToLowerInvariant()
-            AccountId   = $accountId
-            AccountName = $accountName
-        }
-    }
 
     if ($state.Mode -ne 'Reseller') {
-        foreach ($domain in @(Get-PDDomain -ErrorAction Stop)) { & $toDomain $domain $null $null }
+        Get-PDDomain -ErrorAction Stop | ConvertTo-WeyDmarcDomain
         return
     }
 
@@ -42,6 +31,34 @@ function Get-WeyDmarcDomain {
     foreach ($account in $accounts) {
         if ($null -eq $account) { continue }
         $accountName = if ($account.name) { [string]$account.name } else { "Account $($account.id)" }
-        foreach ($domain in @(Get-PDDomain -AccountId ([int]$account.id) -ErrorAction Stop)) { & $toDomain $domain ([int]$account.id) $accountName }
+        Get-PDDomain -AccountId ([int]$account.id) -ErrorAction Stop | ConvertTo-WeyDmarcDomain -AccountId ([int]$account.id) -AccountName $accountName
+    }
+}
+
+function ConvertTo-WeyDmarcDomain {
+    <#
+    .SYNOPSIS
+    Turns a PowerDMARC domain object into the Id, Name, AccountId and AccountName that the tests use.
+    #>
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param(
+        [Parameter(ValueFromPipeline)]
+        [object] $Domain,
+
+        [Nullable[int]] $AccountId = $null,
+
+        [string] $AccountName = $null
+    )
+
+    process {
+        if ($null -eq $Domain) { return }
+        $name = if ($Domain.PSObject.Properties['domain'] -and $Domain.domain) { [string]$Domain.domain } else { [string]$Domain.name }
+        [pscustomobject]@{
+            Id          = [int]$Domain.id
+            Name        = $name.Trim().TrimEnd('.').ToLowerInvariant()
+            AccountId   = $AccountId
+            AccountName = $(if ($AccountName) { $AccountName } else { $null })
+        }
     }
 }

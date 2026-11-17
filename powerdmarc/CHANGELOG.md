@@ -10,3 +10,4 @@ Every release of the pack, newest first. Install-MtPack shows the version; Updat
 - The pack's connector, `WEY.DMARC.PowerDMARC`, connects with the PowerDMARC module (0.1.1, from the PowerShell
   Gallery) in Default (End User) or Reseller (MSSP) mode.
 - Replaces the content of the Maester demo pack this pack started from.
+- The pack Id is `weycc81.powerdmarc`, after the GitHub owner that publishes it, as the pack index requires.
