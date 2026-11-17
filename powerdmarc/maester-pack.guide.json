@@ -9,17 +9,17 @@
     "Steps": [
       {
         "Text": "End user: the domains of the token's own account.",
-        "Command": "Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }"
+        "Command": "Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }"
       },
       {
         "Text": "Reseller (MSSP): every customer account on your portal, or one with AccountId.",
-        "Command": "Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token'); Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com' }"
+        "Command": "Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token'); Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com' }"
       }
     ]
   },
   "Run": {
     "Commands": [
-      { "Text": "Run the pack on its own.", "Command": "Invoke-Maester -Pack WEY.DMARC -SkipBuiltIn" }
+      { "Text": "Run the pack on its own.", "Command": "Invoke-Maester -Pack WEY.POWERDMARC -SkipBuiltIn" }
     ],
     "Options": [
       { "Name": "MaximumLookups", "Default": "10", "Text": "The most DNS lookups the SPF record may need (1 to 10)." },
@@ -29,7 +29,7 @@
   },
   "AppOnly": {
     "Supported": true,
-    "Text": "Runs unattended with the token in the MAESTER_WEY_DMARC_POWERDMARC_APITOKEN environment variable (and _MODE, _BASEURI, _ACCOUNTID as needed). No Microsoft sign-in is needed."
+    "Text": "Runs unattended with the token in the MAESTER_WEY_POWERDMARC_API_APITOKEN environment variable (and _MODE, _BASEURI, _ACCOUNTID as needed). No Microsoft sign-in is needed."
   },
   "Support": {
     "Pack": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues"

@@ -1,7 +1,7 @@
 ﻿function Get-WeyDmarcHostedSpfInstance {
     <#
     .SYNOPSIS
-    Instance source of MP.WEY.DMARC.1001: one instance per PowerDMARC domain, grouped by customer account.
+    Instance source of MP.WEY.POWERDMARC.1001: one instance per PowerDMARC domain, grouped by customer account.
 
     .DESCRIPTION
     The instance ID is the domain name, so it stays the same from run to run and can be excluded in
@@ -35,14 +35,19 @@ function Test-WeyDmarcHostedSpf {
     Checks the Hosted SPF (PowerSPF) record of each PowerDMARC domain: DNS lookups, void lookups, errors and the all mechanism.
     #>
     [MaesterTest(
-        Id             = 'MP.WEY.DMARC.1001',
+        Id             = 'MP.WEY.POWERDMARC.1001',
         Title          = 'PowerDMARC: Hosted SPF of every domain is healthy',
         Severity       = 'High',
-        Product        = 'PowerDMARC',
-        Feature        = 'Hosted SPF',
-        Area           = 'email authentication',
-        ResourceType   = 'Domain',
-        Service        = 'WEY.DMARC.PowerDMARC',
+        # The fix is made in PowerDMARC. Exchange Online is related: its admins look for SPF checks there.
+        Product            = 'PowerDMARC',
+        RelatedProduct     = 'exchange',
+        Feature            = 'email-authentication',
+        Area               = 'email-protection',
+        ResourceType       = 'Domain',
+        UserImpact         = 'Low',
+        ImplementationCost = 'Low',
+        Mitre              = 'T1566',
+        Service        = 'WEY.POWERDMARC.Api',
         InstanceSource = 'Get-WeyDmarcHostedSpfInstance'
     )]
     [CmdletBinding()]

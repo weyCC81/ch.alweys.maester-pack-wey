@@ -12,15 +12,15 @@ without errors. The test gives one result per domain and checks the record that 
 Warnings that PowerDMARC reports are listed but do not fail the test. Domains without Hosted SPF, or with Hosted
 SPF turned off, are skipped.
 
-Each result's ID ends with the domain name, such as `MP.WEY.DMARC.1001.contoso.com`, so a single domain can be
+Each result's ID ends with the domain name, such as `MP.WEY.POWERDMARC.1001.contoso.com`, so a single domain can be
 excluded or given its own limits in `maester-config.json`. In Reseller (MSSP) mode each result has the field
 **Account**, the customer account the domain belongs to, which the report groups and filters by. A domain that two
-customer accounts hold gets the account ID at the end of its ID, such as `MP.WEY.DMARC.1001.contoso.com.42`.
+customer accounts hold gets the account ID at the end of its ID, such as `MP.WEY.POWERDMARC.1001.contoso.com.42`.
 
 Connect first:
 
 ```powershell
-Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
+Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
 ```
 
 The limits are settings, so each tenant can set its own in `maester-config.json`:
@@ -28,7 +28,7 @@ The limits are settings, so each tenant can set its own in `maester-config.json`
 ```json
 {
   "TestSettings": [
-    { "Id": "MP.WEY.DMARC.1001", "Parameters": { "MaximumLookups": 8, "RequireHardFail": true } }
+    { "Id": "MP.WEY.POWERDMARC.1001", "Parameters": { "MaximumLookups": 8, "RequireHardFail": true } }
   ]
 }
 ```

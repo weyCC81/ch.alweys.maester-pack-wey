@@ -4,10 +4,10 @@ function Connect-WeyDmarcPowerDmarc {
     Connects this pack to the PowerDMARC API: it keeps the token and settings for the tests of this pack.
 
     .DESCRIPTION
-    Connect-Maester -Service WEY.DMARC.PowerDMARC calls it. Its parameters come from -ServiceSetting, from
-    Connections.WEY.DMARC.PowerDMARC in maester-config.json, or from MAESTER_WEY_DMARC_POWERDMARC_<NAME>
+    Connect-Maester -Service WEY.POWERDMARC.Api calls it. Its parameters come from -ServiceSetting, from
+    Connections.WEY.POWERDMARC.Api in maester-config.json, or from MAESTER_WEY_POWERDMARC_API_<NAME>
     environment variables. Keep the token out of maester-config.json: pass it with -ServiceSetting or the
-    MAESTER_WEY_DMARC_POWERDMARC_APITOKEN environment variable.
+    MAESTER_WEY_POWERDMARC_API_APITOKEN environment variable.
 
     Default mode (End User API) checks the domains of the token's own account. Reseller mode (MSSP API) checks
     the domains of one customer account (AccountId), or of every customer account when AccountId is not given.
@@ -17,10 +17,10 @@ function Connect-WeyDmarcPowerDmarc {
     loaded when they run (Connect-WeyDmarcPowerDmarcModule), from the settings kept here.
 
     .EXAMPLE
-    Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
+    Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
 
     .EXAMPLE
-    Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = $token; Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com'; AccountId = 42 }
+    Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = $token; Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com'; AccountId = 42 }
     #>
     [CmdletBinding()]
     param(
@@ -63,7 +63,7 @@ function Connect-WeyDmarcPowerDmarc {
 function Test-WeyDmarcPowerDmarc {
     <#
     .SYNOPSIS
-    Returns $true when Connect-WeyDmarcPowerDmarc has run in this session. Tests that need WEY.DMARC.PowerDMARC are skipped otherwise.
+    Returns $true when Connect-WeyDmarcPowerDmarc has run in this session. Tests that need WEY.POWERDMARC.Api are skipped otherwise.
     #>
     [CmdletBinding()]
     [OutputType([bool])]

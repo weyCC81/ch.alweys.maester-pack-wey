@@ -1,17 +1,17 @@
 {
   "$schema": "https://maester.dev/schemas/maester-pack-1.0.json",
   "Id": "weycc81.powerdmarc",
-  "Guid": "bf29242e-9eac-4e0b-8a4d-6719c83ab38d",
+  "Guid": "cedd27fe-2383-45a2-8ac8-7918f7aedfe8",
   "Name": "PowerDMARC",
   "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing. By Alweys C//oud (alweys.ch).",
-  "Version": "1.0.1",
+  "Version": "2.0.0",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/powerdmarc",
   "Support": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues",
   "SecurityContact": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/security/advisories/new",
   "RequiresMaester": ">=3.0",
-  "Code": "WEY.DMARC",
+  "Code": "WEY.POWERDMARC",
   "Suites": [
     "tests"
   ],
@@ -20,7 +20,7 @@
   ],
   "Connectors": [
     {
-      "Service": "WEY.DMARC.PowerDMARC",
+      "Service": "WEY.POWERDMARC.Api",
       "DisplayName": "PowerDMARC",
       "File": "connector/Connect-WeyDmarcPowerDmarc.ps1",
       "Connect": "Connect-WeyDmarcPowerDmarc",
@@ -30,7 +30,7 @@
   ],
   "Uses": {
     "Services": [
-      "WEY.DMARC.PowerDMARC"
+      "WEY.POWERDMARC.Api"
     ],
     "GraphScopes": [],
     "TenantWrites": [],

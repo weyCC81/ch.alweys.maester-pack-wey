@@ -21,20 +21,20 @@ Create a Personal Access Token in PowerDMARC under **API Settings > Personal Acc
 
 ```powershell
 # End user (Default mode): the domains of the token's own account
-Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
+Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
 
 # Reseller (MSSP mode) on your portal host: one customer account, or leave AccountId out for every account
-Connect-Maester -Service WEY.DMARC.PowerDMARC -ServiceSetting @{
+Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{
     ApiToken  = (Read-Host -AsSecureString 'PowerDMARC token')
     Mode      = 'Reseller'
     BaseUri   = 'reseller.powerdmarc.com'
     AccountId = 42
 }
 
-Invoke-Maester -Pack WEY.DMARC -SkipBuiltIn
+Invoke-Maester -Pack WEY.POWERDMARC -SkipBuiltIn
 ```
 
-For unattended runs, put the token in the `MAESTER_WEY_DMARC_POWERDMARC_APITOKEN` environment variable (and
+For unattended runs, put the token in the `MAESTER_WEY_POWERDMARC_API_APITOKEN` environment variable (and
 `..._MODE`, `..._BASEURI`, `..._ACCOUNTID` as needed) instead of `-ServiceSetting`. Keep it out of
 `maester-config.json`. Without a connection the tests are skipped.
 
@@ -49,20 +49,20 @@ For unattended runs, put the token in the `MAESTER_WEY_DMARC_POWERDMARC_APITOKEN
 
 | ID | What it checks |
 | --- | --- |
-| MP.WEY.DMARC.1001 | One result per domain: the Hosted SPF (PowerSPF) record needs at most 10 DNS lookups and at most 2 void lookups, has no errors, and ends with `-all` or `~all`. Domains without Hosted SPF are skipped |
+| MP.WEY.POWERDMARC.1001 | One result per domain: the Hosted SPF (PowerSPF) record needs at most 10 DNS lookups and at most 2 void lookups, has no errors, and ends with `-all` or `~all`. Domains without Hosted SPF are skipped |
 
-Each domain gets its own result, `MP.WEY.DMARC.1001.<domain>`. In Reseller mode each result has the field
+Each domain gets its own result, `MP.WEY.POWERDMARC.1001.<domain>`. In Reseller mode each result has the field
 **Account**, the customer account it belongs to, so the report groups and filters the domains by customer. A domain
-that two customer accounts hold gets the account ID at the end: `MP.WEY.DMARC.1001.<domain>.<account ID>`.
+that two customer accounts hold gets the account ID at the end: `MP.WEY.POWERDMARC.1001.<domain>.<account ID>`.
 
 Change the limits in your `maester-config.json`, for every domain or for one, or leave a domain out:
 
 ```json
 {
   "TestSettings": [
-    { "Id": "MP.WEY.DMARC.1001", "Parameters": { "MaximumLookups": 8, "MaximumVoidLookups": 2, "RequireHardFail": true } },
-    { "Id": "MP.WEY.DMARC.1001.contoso.com", "Parameters": { "RequireHardFail": false } },
-    { "Id": "MP.WEY.DMARC.1001.contoso.onmicrosoft.com", "Enabled": false }
+    { "Id": "MP.WEY.POWERDMARC.1001", "Parameters": { "MaximumLookups": 8, "MaximumVoidLookups": 2, "RequireHardFail": true } },
+    { "Id": "MP.WEY.POWERDMARC.1001.contoso.com", "Parameters": { "RequireHardFail": false } },
+    { "Id": "MP.WEY.POWERDMARC.1001.contoso.onmicrosoft.com", "Enabled": false }
   ]
 }
 ```
@@ -71,7 +71,7 @@ Change the limits in your `maester-config.json`, for every domain or for one, or
 
 `Uses` in [maester-pack.json](maester-pack.json) declares it, and Install-MtPack shows it before installing:
 
-- **Service**: `WEY.DMARC.PowerDMARC`, the pack's own connector
+- **Service**: `WEY.POWERDMARC.Api`, the pack's own connector
   ([connector/Connect-WeyDmarcPowerDmarc.ps1](connector/Connect-WeyDmarcPowerDmarc.ps1)).
 - **Module**: PowerDMARC 0.1.1 from the PowerShell Gallery, saved and pinned by Maester at install.
 - **Network**: `*.powerdmarc.com`, through the module. The module sends only `GET` requests.

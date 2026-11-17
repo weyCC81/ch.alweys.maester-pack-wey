@@ -12,8 +12,8 @@ function Connect-WeyDmarcPowerDmarcModule {
     [OutputType([hashtable])]
     param()
 
-    $state = Get-MtConnectionState -Service WEY.DMARC.PowerDMARC
-    if (-not $state) { throw 'Not connected to PowerDMARC. Run Connect-Maester -Service WEY.DMARC.PowerDMARC first.' }
+    $state = Get-MtConnectionState -Service WEY.POWERDMARC.Api
+    if (-not $state) { throw 'Not connected to PowerDMARC. Run Connect-Maester -Service WEY.POWERDMARC.Api first.' }
 
     $connectParams = @{ ApiToken = $state.ApiToken; Mode = $state.Mode; BaseUri = $state.BaseUri; ShowBanner = $false }
     if ($state.Mode -eq 'Reseller' -and $state.AccountId -gt 0) { $connectParams['AccountId'] = $state.AccountId }

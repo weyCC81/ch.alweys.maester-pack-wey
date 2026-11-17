@@ -5,7 +5,7 @@ Ensure that your cloud is always oriented the right way!
 
 | Pack | Code | Install |
 | --- | --- | --- |
-| [PowerDMARC](powerdmarc/README.md) | `WEY.DMARC` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/powerdmarc` |
+| [PowerDMARC](powerdmarc/README.md) | `WEY.POWERDMARC` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/powerdmarc` |
 | [SendGrid](sendgrid/README.md) | `WEY.SENDGRID` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/sendgrid` |
 
 Licence: [MIT](LICENSE). Security issues: [SECURITY.md](SECURITY.md).
