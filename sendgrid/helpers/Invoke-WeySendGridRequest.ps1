@@ -1,11 +1,11 @@
-function Invoke-WeySendGridRequest {
+function Invoke-WEYSendGridRequest {
     <#
     .SYNOPSIS
     Sends one GET request to the SendGrid API, global or EU, and returns the response.
 
     .DESCRIPTION
     Only GET: the pack reads and never changes anything. The host is one of the two literal hosts that
-    Uses.Network declares. Without -ApiKey and -Region it uses the connection of Connect-WeySendGrid.
+    Uses.Network declares. Without -ApiKey and -Region it uses the connection of Connect-WEYSendGrid.
     #>
     [CmdletBinding()]
     param(
@@ -37,7 +37,7 @@ function Invoke-WeySendGridRequest {
     }
 }
 
-function Get-WeySendGridPage {
+function Get-WEYSendGridPage {
     <#
     .SYNOPSIS
     Reads every page of a SendGrid list that pages with limit and offset, and returns the items.
@@ -58,13 +58,13 @@ function Get-WeySendGridPage {
     $separator = if ($Path.Contains('?')) { '&' } else { '?' }
     $offset = 0
     do {
-        $page = @(Invoke-WeySendGridRequest -Path "$Path$($separator)limit=$PageSize&offset=$offset" | ForEach-Object { $_ })
+        $page = @(Invoke-WEYSendGridRequest -Path "$Path$($separator)limit=$PageSize&offset=$offset" | ForEach-Object { $_ })
         $page
         $offset += $PageSize
     } while ($page.Count -eq $PageSize -and $offset -lt $MaximumItems)
 }
 
-function Test-WeySendGridScope {
+function Test-WEYSendGridScope {
     <#
     .SYNOPSIS
     Returns $true when the connected API key has every scope named; otherwise skips the running test and says

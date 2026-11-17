@@ -1,4 +1,4 @@
-function Get-WeySendGridDomainInstance {
+function Get-WEYSendGridDomainInstance {
     <#
     .SYNOPSIS
     Instance source of MP.WEY.SENDGRID.1001: one instance per authenticated domain in SendGrid.
@@ -18,7 +18,7 @@ function Get-WeySendGridDomainInstance {
         return
     }
 
-    $domains = @(Get-WeySendGridPage -Path '/v3/whitelabel/domains' | Where-Object { $_ -and $_.domain })
+    $domains = @(Get-WEYSendGridPage -Path '/v3/whitelabel/domains' | Where-Object { $_ -and $_.domain })
     $shared = @($domains | Group-Object { ([string]$_.domain).ToLowerInvariant() } | Where-Object Count -GT 1 | ForEach-Object Name)
     foreach ($d in ($domains | Sort-Object domain, id)) {
         $name = ([string]$d.domain).Trim().TrimEnd('.').ToLowerInvariant()
@@ -33,7 +33,7 @@ function Get-WeySendGridDomainInstance {
     }
 }
 
-function Test-WeySendGridDomainValidated {
+function Test-WEYSendGridDomainValidated {
     <#
     .SYNOPSIS
     Checks that an authenticated domain in SendGrid is validated: its DKIM and SPF (return path) DNS records
@@ -51,7 +51,7 @@ function Test-WeySendGridDomainValidated {
         ImplementationCost = 'Low',
         Mitre              = 'T1566',
         Service            = 'WEY.SENDGRID.Api',
-        InstanceSource     = 'Get-WeySendGridDomainInstance'
+        InstanceSource     = 'Get-WEYSendGridDomainInstance'
     )]
     [CmdletBinding()]
     [OutputType([bool])]

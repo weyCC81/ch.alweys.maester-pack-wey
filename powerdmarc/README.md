@@ -98,8 +98,8 @@ A test is a Maester native test: see [Writing native tests](https://maester.dev/
 | --- | --- |
 | `maester-pack.json` | The manifest: ID, code, version, the suite, helpers, the connector and what the pack uses |
 | `tests/` | The suite: `suite.json`, and one `Test.<ID>.ps1` and `Test.<ID>.md` per test |
-| `helpers/` | Functions the tests call: `Get-WeyDmarcDomain` lists the domains in scope with their customer account, and `Connect-WeyDmarcPowerDmarcModule` connects the loaded PowerDMARC module |
-| `connector/` | `Connect-`, `Test-` and `Disconnect-WeyDmarcPowerDmarc` for the PowerDMARC API |
+| `helpers/` | Functions the tests call: `Get-WEYDmarcDomain` lists the domains in scope with their customer account, and `Connect-WEYDmarcPowerDmarcModule` connects the loaded PowerDMARC module |
+| `connector/` | `Connect-`, `Test-` and `Disconnect-WEYDmarcPowerDmarc` for the PowerDMARC API |
 | `assets/banner.png` | The image the pack index shows when it features the pack |
 
 Security issues: see the [security policy](../SECURITY.md).

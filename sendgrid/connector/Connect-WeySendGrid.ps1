@@ -1,4 +1,4 @@
-function Connect-WeySendGrid {
+function Connect-WEYSendGrid {
     <#
     .SYNOPSIS
     Connects this pack to the Twilio SendGrid API with an API key, global or EU.
@@ -38,16 +38,16 @@ function Connect-WeySendGrid {
     $secureKey = ConvertTo-SecureString -String $plain -AsPlainText -Force
     $plain = $null
 
-    $scopes = @((Invoke-WeySendGridRequest -Path '/v3/scopes' -ApiKey $secureKey -Region $Region).scopes)
+    $scopes = @((Invoke-WEYSendGridRequest -Path '/v3/scopes' -ApiKey $secureKey -Region $Region).scopes)
     $hostName = if ($Region -eq 'EU') { 'api.eu.sendgrid.com' } else { 'api.sendgrid.com' }
     # The key is kept as a SecureString in this session only; it is never written to a file or a report.
     Set-MtConnectionState -Value @{ ApiKey = $secureKey; Region = $Region; Scopes = $scopes } -Tenant $hostName -Account "$Region region, $($scopes.Count) scopes"
 }
 
-function Test-WeySendGrid {
+function Test-WEYSendGrid {
     <#
     .SYNOPSIS
-    Returns $true when Connect-WeySendGrid has run in this session. Tests that need WEY.SENDGRID.Api are skipped otherwise.
+    Returns $true when Connect-WEYSendGrid has run in this session. Tests that need WEY.SENDGRID.Api are skipped otherwise.
     #>
     [CmdletBinding()]
     [OutputType([bool])]
@@ -56,7 +56,7 @@ function Test-WeySendGrid {
     [bool](Get-MtConnectionState)
 }
 
-function Disconnect-WeySendGrid {
+function Disconnect-WEYSendGrid {
     <#
     .SYNOPSIS
     Forgets the SendGrid connection of this pack.

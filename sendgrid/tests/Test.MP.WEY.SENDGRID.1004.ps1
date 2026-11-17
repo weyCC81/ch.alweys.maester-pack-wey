@@ -1,4 +1,4 @@
-function Test-WeySendGridEuRegion {
+function Test-WEYSendGridEuRegion {
     <#
     .SYNOPSIS
     Checks that the SendGrid account, its subusers and its dedicated IPs are in the EU region, so mail and its
@@ -31,7 +31,7 @@ function Test-WeySendGridEuRegion {
     # Subusers, with their region.
     $notChecked = @()
     if ('subusers.read' -in $scopes) {
-        foreach ($s in @(Get-WeySendGridPage -Path '/v3/subusers?include_region=true' | Where-Object { $_ -and $_.username })) {
+        foreach ($s in @(Get-WEYSendGridPage -Path '/v3/subusers?include_region=true' | Where-Object { $_ -and $_.username })) {
             $region = if ($s.region) { [string]$s.region } else { 'unknown' }
             $rows.Add([pscustomobject]@{ Object = [string]$s.username; Kind = 'subuser'; Region = $region; InEu = $region -eq 'eu' })
         }
@@ -42,7 +42,7 @@ function Test-WeySendGridEuRegion {
         $after = $null
         do {
             $path = '/v3/send_ips/ips?include_region=true&limit=100' + $(if ($after) { "&after_key=$after" } else { '' })
-            $page = Invoke-WeySendGridRequest -Path $path
+            $page = Invoke-WEYSendGridRequest -Path $path
             foreach ($ip in @($page.result | Where-Object { $_ -and $_.ip })) {
                 $region = if ($ip.region) { [string]$ip.region } else { 'unknown' }
                 $rows.Add([pscustomobject]@{ Object = [string]$ip.ip; Kind = 'IP'; Region = $region; InEu = $region -eq 'eu' })

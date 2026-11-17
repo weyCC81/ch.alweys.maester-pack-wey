@@ -23,9 +23,9 @@
       "Service": "WEY.SENDGRID.Api",
       "DisplayName": "SendGrid",
       "File": "connector/Connect-WeySendGrid.ps1",
-      "Connect": "Connect-WeySendGrid",
-      "Test": "Test-WeySendGrid",
-      "Disconnect": "Disconnect-WeySendGrid"
+      "Connect": "Connect-WEYSendGrid",
+      "Test": "Test-WEYSendGrid",
+      "Disconnect": "Disconnect-WEYSendGrid"
     }
   ],
   "Uses": {

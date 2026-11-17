@@ -1,7 +1,7 @@
-function Connect-WeyDmarcPowerDmarcModule {
+function Connect-WEYDmarcPowerDmarcModule {
     <#
     .SYNOPSIS
-    Connects the PowerDMARC module that is loaded now, from the settings Connect-WeyDmarcPowerDmarc kept.
+    Connects the PowerDMARC module that is loaded now, from the settings Connect-WEYDmarcPowerDmarc kept.
 
     .DESCRIPTION
     Returns the connection settings (BaseUri, Mode, AccountId). Call it before any PowerDMARC command: the

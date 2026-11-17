@@ -23,9 +23,9 @@
       "Service": "WEY.POWERDMARC.Api",
       "DisplayName": "PowerDMARC",
       "File": "connector/Connect-WeyDmarcPowerDmarc.ps1",
-      "Connect": "Connect-WeyDmarcPowerDmarc",
-      "Test": "Test-WeyDmarcPowerDmarc",
-      "Disconnect": "Disconnect-WeyDmarcPowerDmarc"
+      "Connect": "Connect-WEYDmarcPowerDmarc",
+      "Test": "Test-WEYDmarcPowerDmarc",
+      "Disconnect": "Disconnect-WEYDmarcPowerDmarc"
     }
   ],
   "Uses": {

@@ -1,4 +1,4 @@
-function Connect-WeyDmarcPowerDmarc {
+function Connect-WEYDmarcPowerDmarc {
     <#
     .SYNOPSIS
     Connects this pack to the PowerDMARC API: it keeps the token and settings for the tests of this pack.
@@ -14,7 +14,7 @@ function Connect-WeyDmarcPowerDmarc {
 
     The PowerDMARC module keeps its connection inside the module, so a second copy of the module (one the user
     installed next to the one Maester pins) would not see it. The tests therefore connect the module that is
-    loaded when they run (Connect-WeyDmarcPowerDmarcModule), from the settings kept here.
+    loaded when they run (Connect-WEYDmarcPowerDmarcModule), from the settings kept here.
 
     .EXAMPLE
     Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token') }
@@ -60,10 +60,10 @@ function Connect-WeyDmarcPowerDmarc {
     Set-MtConnectionState -Value @{ ApiToken = $secureToken; BaseUri = $BaseUri; Mode = $Mode; AccountId = $AccountId } -Tenant $hostName -Account "$Mode ($account)"
 }
 
-function Test-WeyDmarcPowerDmarc {
+function Test-WEYDmarcPowerDmarc {
     <#
     .SYNOPSIS
-    Returns $true when Connect-WeyDmarcPowerDmarc has run in this session. Tests that need WEY.POWERDMARC.Api are skipped otherwise.
+    Returns $true when Connect-WEYDmarcPowerDmarc has run in this session. Tests that need WEY.POWERDMARC.Api are skipped otherwise.
     #>
     [CmdletBinding()]
     [OutputType([bool])]
@@ -72,7 +72,7 @@ function Test-WeyDmarcPowerDmarc {
     [bool](Get-MtConnectionState)
 }
 
-function Disconnect-WeyDmarcPowerDmarc {
+function Disconnect-WEYDmarcPowerDmarc {
     <#
     .SYNOPSIS
     Forgets the PowerDMARC connection of this pack.

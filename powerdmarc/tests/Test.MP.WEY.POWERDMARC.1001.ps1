@@ -1,4 +1,4 @@
-﻿function Get-WeyDmarcHostedSpfInstance {
+﻿function Get-WEYDmarcHostedSpfInstance {
     <#
     .SYNOPSIS
     Instance source of MP.WEY.POWERDMARC.1001: one instance per PowerDMARC domain, grouped by customer account.
@@ -14,7 +14,7 @@
     param()
 
     # The same domain listed twice in one account is checked once.
-    $domains = @(Get-WeyDmarcDomain | Sort-Object Name, AccountName, Id | Sort-Object AccountId, Id -Unique | Sort-Object Name, AccountName)
+    $domains = @(Get-WEYDmarcDomain | Sort-Object Name, AccountName, Id | Sort-Object AccountId, Id -Unique | Sort-Object Name, AccountName)
     $shared = @($domains | Group-Object Name | Where-Object Count -GT 1 | ForEach-Object Name)
 
     foreach ($domain in $domains) {
@@ -29,7 +29,7 @@
     }
 }
 
-function Test-WeyDmarcHostedSpf {
+function Test-WEYDmarcHostedSpf {
     <#
     .SYNOPSIS
     Checks the Hosted SPF (PowerSPF) record of each PowerDMARC domain: DNS lookups, void lookups, errors and the all mechanism.
@@ -48,7 +48,7 @@ function Test-WeyDmarcHostedSpf {
         ImplementationCost = 'Low',
         Mitre              = 'T1566',
         Service        = 'WEY.POWERDMARC.Api',
-        InstanceSource = 'Get-WeyDmarcHostedSpfInstance'
+        InstanceSource = 'Get-WEYDmarcHostedSpfInstance'
     )]
     [CmdletBinding()]
     [OutputType([bool])]
@@ -70,7 +70,7 @@ function Test-WeyDmarcHostedSpf {
 
     $domain = $Instance.Data
     $safeName = Get-MtSafeMarkdown -Text $domain.Name
-    $null = Connect-WeyDmarcPowerDmarcModule
+    $null = Connect-WEYDmarcPowerDmarcModule
     $record = @(Get-PDHostedSPF -DomainId $domain.Id -ErrorAction Stop) | Select-Object -First 1
 
     if (-not $record) {

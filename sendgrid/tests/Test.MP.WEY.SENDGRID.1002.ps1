@@ -1,4 +1,4 @@
-function Get-WeySendGridApiKeyInstance {
+function Get-WEYSendGridApiKeyInstance {
     <#
     .SYNOPSIS
     Instance source of MP.WEY.SENDGRID.1002: one instance per API key of the SendGrid account, with its scopes.
@@ -13,9 +13,9 @@ function Get-WeySendGridApiKeyInstance {
         return
     }
 
-    $keys = @((Invoke-WeySendGridRequest -Path '/v3/api_keys?limit=500').result | Where-Object { $_ -and $_.api_key_id })
+    $keys = @((Invoke-WEYSendGridRequest -Path '/v3/api_keys?limit=500').result | Where-Object { $_ -and $_.api_key_id })
     foreach ($k in ($keys | Sort-Object name, api_key_id)) {
-        $detail = @((Invoke-WeySendGridRequest -Path "/v3/api_keys/$($k.api_key_id)").result) | Select-Object -First 1
+        $detail = @((Invoke-WEYSendGridRequest -Path "/v3/api_keys/$($k.api_key_id)").result) | Select-Object -First 1
         $id = [string]$k.api_key_id
         [pscustomobject]@{
             # The key ID is stable, so a key can be excluded in maester-config.json; it is not the secret.
@@ -26,7 +26,7 @@ function Get-WeySendGridApiKeyInstance {
     }
 }
 
-function Test-WeySendGridApiKeyPrivilege {
+function Test-WEYSendGridApiKeyPrivilege {
     <#
     .SYNOPSIS
     Checks that a SendGrid API key cannot manage access to the account: no Full Access, and no scope that
@@ -44,7 +44,7 @@ function Test-WeySendGridApiKeyPrivilege {
         ImplementationCost = 'Low',
         Mitre              = 'T1098',
         Service            = 'WEY.SENDGRID.Api',
-        InstanceSource     = 'Get-WeySendGridApiKeyInstance'
+        InstanceSource     = 'Get-WEYSendGridApiKeyInstance'
     )]
     [CmdletBinding()]
     [OutputType([bool])]

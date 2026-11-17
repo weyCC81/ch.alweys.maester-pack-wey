@@ -1,4 +1,4 @@
-function Test-WeySendGridEnforcedTls {
+function Test-WEYSendGridEnforcedTls {
     <#
     .SYNOPSIS
     Checks that SendGrid delivers mail only over TLS (Enforced TLS), at a minimum TLS version.
@@ -27,9 +27,9 @@ function Test-WeySendGridEnforcedTls {
         [string] $MinimumVersion = '1.2'
     )
 
-    if (-not (Test-WeySendGridScope -Scope 'user.settings.enforced_tls.read')) { return $null }
+    if (-not (Test-WEYSendGridScope -Scope 'user.settings.enforced_tls.read')) { return $null }
 
-    $tls = Invoke-WeySendGridRequest -Path '/v3/user/settings/enforced_tls'
+    $tls = Invoke-WEYSendGridRequest -Path '/v3/user/settings/enforced_tls'
     $version = if ($null -ne $tls.version) { [string]$tls.version } else { '' }
     $versionOk = -not $version -or ([version]$version -ge [version]$MinimumVersion)
 

@@ -85,8 +85,8 @@ Write what changed under `## Unreleased` in [CHANGELOG.md](CHANGELOG.md) and rai
 | `maester-pack.json` | The manifest: ID, code, version, the suite, helpers, the connector and what the pack uses |
 | `maester-pack.guide.json` | How to install, connect and run, for the pack's page on packs.maester.cloud |
 | `tests/` | The suite: `suite.json`, and one `Test.<ID>.ps1` and `Test.<ID>.md` per test |
-| `helpers/` | `Invoke-WeySendGridRequest` (GET only), paging and the scope check |
-| `connector/` | `Connect-`, `Test-` and `Disconnect-WeySendGrid` |
+| `helpers/` | `Invoke-WEYSendGridRequest` (GET only), paging and the scope check |
+| `connector/` | `Connect-`, `Test-` and `Disconnect-WEYSendGrid` |
 | `assets/banner.png` | The image the pack index shows when it features the pack |
 
 Security issues: see the [security policy](../SECURITY.md).

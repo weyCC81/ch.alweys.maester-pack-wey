@@ -1,4 +1,4 @@
-function Get-WeyDmarcDomain {
+function Get-WEYDmarcDomain {
     <#
     .SYNOPSIS
     Returns the PowerDMARC domains in scope of the connection, each with its ID, name and customer account.
@@ -13,10 +13,10 @@ function Get-WeyDmarcDomain {
     [OutputType([pscustomobject])]
     param()
 
-    $state = Connect-WeyDmarcPowerDmarcModule
+    $state = Connect-WEYDmarcPowerDmarcModule
 
     if ($state.Mode -ne 'Reseller') {
-        Get-PDDomain -ErrorAction Stop | ConvertTo-WeyDmarcDomain
+        Get-PDDomain -ErrorAction Stop | ConvertTo-WEYDmarcDomain
         return
     }
 
@@ -31,11 +31,11 @@ function Get-WeyDmarcDomain {
     foreach ($account in $accounts) {
         if ($null -eq $account) { continue }
         $accountName = if ($account.name) { [string]$account.name } else { "Account $($account.id)" }
-        Get-PDDomain -AccountId ([int]$account.id) -ErrorAction Stop | ConvertTo-WeyDmarcDomain -AccountId ([int]$account.id) -AccountName $accountName
+        Get-PDDomain -AccountId ([int]$account.id) -ErrorAction Stop | ConvertTo-WEYDmarcDomain -AccountId ([int]$account.id) -AccountName $accountName
     }
 }
 
-function ConvertTo-WeyDmarcDomain {
+function ConvertTo-WEYDmarcDomain {
     <#
     .SYNOPSIS
     Turns a PowerDMARC domain object into the Id, Name, AccountId and AccountName that the tests use.
