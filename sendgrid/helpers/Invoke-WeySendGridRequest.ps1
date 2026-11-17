@@ -1,52 +1,39 @@
-function Invoke-WEYSendGridRequest {
+function Connect-WEYSendGridModule {
     <#
     .SYNOPSIS
-    Sends one GET request to the SendGrid API, global or EU, and returns the response.
+    Connects the SendGridTools module that is loaded now, from the key Connect-WEYSendGrid kept.
 
     .DESCRIPTION
-    Only GET: the pack reads and never changes anything. The host is one of the two literal hosts that
-    Uses.Network declares. Without -ApiKey and -Region it uses the connection of Connect-WEYSendGrid.
+    SendGridTools keeps its connection inside the module, and the copy loaded for the tests may not be the one
+    that was loaded when Connect-Maester ran. Call it once at the start of a test or instance source. It sends
+    one GET request (/v3/scopes).
     #>
     [CmdletBinding()]
-    param(
-        # The API path with its query, starting with /v3/.
-        [Parameter(Mandatory)]
-        [ValidatePattern('^/v3/[A-Za-z0-9_./{}?&=,-]*$')]
-        [string] $Path,
+    param()
 
-        [securestring] $ApiKey,
-
-        [ValidateSet('Global', 'EU')]
-        [string] $Region
-    )
-
-    if (-not $ApiKey) {
-        $state = Get-MtConnectionState -Service WEY.SENDGRID.Api
-        if (-not $state) { throw 'Not connected to SendGrid. Run Connect-Maester -Service WEY.SENDGRID.Api first.' }
-        $ApiKey = $state.ApiKey
-        $Region = $state.Region
-    }
-
-    $headers = @{ Authorization = 'Bearer ' + [System.Net.NetworkCredential]::new('', $ApiKey).Password; Accept = 'application/json' }
-    # The host is written out before the first variable, so the pack's content check can see where requests go.
-    $rest = $Path.Substring('/v3/'.Length)
-    if ($Region -eq 'EU') {
-        Invoke-RestMethod -Uri "https://api.eu.sendgrid.com/v3/$rest" -Headers $headers -Method Get -ErrorAction Stop
-    } else {
-        Invoke-RestMethod -Uri "https://api.sendgrid.com/v3/$rest" -Headers $headers -Method Get -ErrorAction Stop
-    }
+    $state = Get-MtConnectionState -Service WEY.SENDGRID.Api
+    if (-not $state) { throw 'Not connected to SendGrid. Run Connect-Maester -Service WEY.SENDGRID.Api first.' }
+    Connect-SendGrid -Credential ([pscredential]::new('apikey', $state.ApiKey)) -Force -Confirm:$false 4>$null
 }
 
 function Get-WEYSendGridPage {
     <#
     .SYNOPSIS
-    Reads every page of a SendGrid list that pages with limit and offset, and returns the items.
+    Reads every page of a SendGrid list that pages with limit and offset, through Invoke-SGCommand (GET).
+
+    .DESCRIPTION
+    The dedicated SendGridTools commands (Get-SGAuthenticatedDomain, Get-SGSubuser) read only SendGrid's
+    default first page, so the lists are read here, page by page.
     #>
     [CmdletBinding()]
     param(
-        # The API path, with any query except limit and offset.
+        # The API path without /v3/, such as 'whitelabel/domains'.
         [Parameter(Mandatory)]
-        [string] $Path,
+        [ValidatePattern('^[a-z_/]+$')]
+        [string] $Namespace,
+
+        # More query parameters, such as 'include_region=true'.
+        [string[]] $Query = @(),
 
         [ValidateRange(1, 500)]
         [int] $PageSize = 100,
@@ -55,10 +42,13 @@ function Get-WEYSendGridPage {
         [int] $MaximumItems = 5000
     )
 
-    $separator = if ($Path.Contains('?')) { '&' } else { '?' }
     $offset = 0
     do {
-        $page = @(Invoke-WEYSendGridRequest -Path "$Path$($separator)limit=$PageSize&offset=$offset" | ForEach-Object { $_ })
+        $parameters = [System.Collections.Generic.List[string]]::new()
+        foreach ($q in $Query) { $parameters.Add($q) }
+        $parameters.Add("limit=$PageSize")
+        $parameters.Add("offset=$offset")
+        $page = @(Invoke-SGCommand -WebMethod Get -Namespace $Namespace -QueryParameters $parameters | Where-Object { $null -ne $_ })
         $page
         $offset += $PageSize
     } while ($page.Count -eq $PageSize -and $offset -lt $MaximumItems)

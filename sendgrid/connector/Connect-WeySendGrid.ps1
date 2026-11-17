@@ -1,7 +1,7 @@
 function Connect-WEYSendGrid {
     <#
     .SYNOPSIS
-    Connects this pack to the Twilio SendGrid API with an API key, global or EU.
+    Connects this pack to the Twilio SendGrid API with an API key, through the SendGridTools module.
 
     .DESCRIPTION
     Connect-Maester -Service WEY.SENDGRID.Api calls it. Its parameters come from -ServiceSetting, from
@@ -11,14 +11,13 @@ function Connect-WEYSendGrid {
 
     Use a key with read-only scopes (Restricted Access): whitelabel.read, api_keys.read,
     user.settings.enforced_tls.read, subusers.read and ips.read. A test whose scope the key lacks is skipped and
-    says which scope to add. The connection reads the key's scopes once (GET /v3/scopes), so a wrong key or
-    region fails here.
+    says which scope to add.
+
+    SendGridTools 0.4.7 reaches only the global host, api.sendgrid.com. An EU regional account or subuser
+    (api.eu.sendgrid.com) cannot be checked with it, so Region 'EU' is refused here.
 
     .EXAMPLE
     Connect-Maester -Service WEY.SENDGRID.Api -ServiceSetting @{ ApiKey = (Read-Host -AsSecureString 'SendGrid API key') }
-
-    .EXAMPLE
-    Connect-Maester -Service WEY.SENDGRID.Api -ServiceSetting @{ ApiKey = $key; Region = 'EU' }
     #>
     [CmdletBinding()]
     param(
@@ -26,10 +25,13 @@ function Connect-WEYSendGrid {
         [Parameter(Mandatory)]
         [object] $ApiKey,
 
-        # Global (api.sendgrid.com) or EU (api.eu.sendgrid.com, for EU regional accounts and subusers).
-        [ValidateSet('Global', 'EU')]
+        # Only Global: SendGridTools 0.4.7 cannot reach api.eu.sendgrid.com.
         [string] $Region = 'Global'
     )
+
+    if ($Region -ne 'Global') {
+        throw "Region '$Region' is not supported: SendGridTools 0.4.7 reaches only api.sendgrid.com, so an EU regional SendGrid account cannot be checked with this pack."
+    }
 
     # Spaces or a line break around a pasted key make SendGrid answer 401, so they are removed.
     $plain = if ($ApiKey -is [securestring]) { [System.Net.NetworkCredential]::new('', $ApiKey).Password } else { [string]$ApiKey }
@@ -38,10 +40,12 @@ function Connect-WEYSendGrid {
     $secureKey = ConvertTo-SecureString -String $plain -AsPlainText -Force
     $plain = $null
 
-    $scopes = @((Invoke-WEYSendGridRequest -Path '/v3/scopes' -ApiKey $secureKey -Region $Region).scopes)
-    $hostName = if ($Region -eq 'EU') { 'api.eu.sendgrid.com' } else { 'api.sendgrid.com' }
+    # Connect-SendGrid checks the key (GET /v3/scopes); a wrong key fails here.
+    Connect-SendGrid -Credential ([pscredential]::new('apikey', $secureKey)) -Force -Confirm:$false 4>$null
+    $scopes = @((Get-SGPermissionScopes).Scopes)
+
     # The key is kept as a SecureString in this session only; it is never written to a file or a report.
-    Set-MtConnectionState -Value @{ ApiKey = $secureKey; Region = $Region; Scopes = $scopes } -Tenant $hostName -Account "$Region region, $($scopes.Count) scopes"
+    Set-MtConnectionState -Value @{ ApiKey = $secureKey; Scopes = $scopes } -Tenant 'api.sendgrid.com' -Account "Global region, $($scopes.Count) scopes"
 }
 
 function Test-WEYSendGrid {

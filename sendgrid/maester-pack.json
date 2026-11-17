@@ -3,8 +3,8 @@
   "Id": "weycc81.sendgrid",
   "Guid": "27789226-bb41-45c2-8d15-3890bdde3f6b",
   "Name": "SendGrid",
-  "Description": "Checks the security of a Twilio SendGrid account: authenticated sender domains are validated, API keys have least privilege, Enforced TLS is on, and the account and its IPs are in the EU. Reads the SendGrid API (global or EU) with a read-only key and changes nothing. By Alweys C//oud (alweys.ch).",
-  "Version": "1.0.0",
+  "Description": "Checks the security of a Twilio SendGrid account: authenticated sender domains are validated, API keys have least privilege, Enforced TLS is on, and subusers and dedicated IPs are in the EU. Reads the SendGrid API with a read-only key through the SendGridTools module and changes nothing. Limit: global SendGrid API only; EU regional accounts (api.eu.sendgrid.com) are not supported by SendGridTools 0.4.7. By Alweys C//oud (alweys.ch).",
+  "Version": "1.0.1",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/sendgrid",
@@ -35,10 +35,14 @@
     "GraphScopes": [],
     "TenantWrites": [],
     "Network": [
-      "api.sendgrid.com",
-      "api.eu.sendgrid.com"
+      "api.sendgrid.com"
     ],
-    "Modules": []
+    "Modules": [
+      {
+        "Name": "SendGridTools",
+        "Version": "0.4.7"
+      }
+    ]
   },
   "Categories": [
     "Email security",

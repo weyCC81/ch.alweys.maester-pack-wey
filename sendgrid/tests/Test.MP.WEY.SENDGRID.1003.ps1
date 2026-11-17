@@ -1,4 +1,4 @@
-function Test-WEYSendGridEnforcedTls {
+﻿function Test-WEYSendGridEnforcedTls {
     <#
     .SYNOPSIS
     Checks that SendGrid delivers mail only over TLS (Enforced TLS), at a minimum TLS version.
@@ -29,13 +29,15 @@ function Test-WEYSendGridEnforcedTls {
 
     if (-not (Test-WEYSendGridScope -Scope 'user.settings.enforced_tls.read')) { return $null }
 
-    $tls = Invoke-WEYSendGridRequest -Path '/v3/user/settings/enforced_tls'
-    $version = if ($null -ne $tls.version) { [string]$tls.version } else { '' }
+    # SendGridTools has no command for Enforced TLS, so its generic Invoke-SGCommand reads it (GET).
+    Connect-WEYSendGridModule
+    $tls = Invoke-SGCommand -WebMethod Get -Namespace 'user/settings/enforced_tls'
+    $version = if ($null -ne $tls.Version) { [string]$tls.Version } else { '' }
     $versionOk = -not $version -or ([version]$version -ge [version]$MinimumVersion)
 
     $checks = @(
-        [pscustomobject]@{ Check = 'Require TLS'; Value = $(if ($tls.require_tls) { 'on' } else { 'off' }); Expected = 'on'; Passed = [bool]$tls.require_tls }
-        [pscustomobject]@{ Check = 'Require a valid certificate'; Value = $(if ($tls.require_valid_cert) { 'on' } else { 'off' }); Expected = $(if ($RequireValidCertificate) { 'on' } else { 'on (recommended)' }); Passed = [bool]$tls.require_valid_cert -or -not $RequireValidCertificate }
+        [pscustomobject]@{ Check = 'Require TLS'; Value = $(if ($tls.RequireTls) { 'on' } else { 'off' }); Expected = 'on'; Passed = [bool]$tls.RequireTls }
+        [pscustomobject]@{ Check = 'Require a valid certificate'; Value = $(if ($tls.RequireValidCert) { 'on' } else { 'off' }); Expected = $(if ($RequireValidCertificate) { 'on' } else { 'on (recommended)' }); Passed = [bool]$tls.RequireValidCert -or -not $RequireValidCertificate }
         [pscustomobject]@{ Check = 'Minimum TLS version'; Value = $(if ($version) { $version } else { 'not set' }); Expected = "$MinimumVersion or newer"; Passed = $versionOk }
     )
     $failing = @($checks | Where-Object { -not $_.Passed })
@@ -43,7 +45,7 @@ function Test-WEYSendGridEnforcedTls {
 
     $summary = if ($passed) {
         'Well done. SendGrid delivers mail only over TLS.'
-    } elseif (-not $tls.require_tls) {
+    } elseif (-not $tls.RequireTls) {
         'SendGrid does not enforce TLS: when a receiving server does not offer TLS, mail is delivered in clear text.'
     } else {
         "Enforced TLS does not meet the settings: $($failing.Check -join ', ')."

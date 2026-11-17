@@ -1,4 +1,4 @@
-function Get-WEYSendGridDomainInstance {
+﻿function Get-WEYSendGridDomainInstance {
     <#
     .SYNOPSIS
     Instance source of MP.WEY.SENDGRID.1001: one instance per authenticated domain in SendGrid.
@@ -18,7 +18,8 @@ function Get-WEYSendGridDomainInstance {
         return
     }
 
-    $domains = @(Get-WEYSendGridPage -Path '/v3/whitelabel/domains' | Where-Object { $_ -and $_.domain })
+    Connect-WEYSendGridModule
+    $domains = @(Get-WEYSendGridPage -Namespace 'whitelabel/domains' | Where-Object { $_ -and $_.Domain })
     $shared = @($domains | Group-Object { ([string]$_.domain).ToLowerInvariant() } | Where-Object Count -GT 1 | ForEach-Object Name)
     foreach ($d in ($domains | Sort-Object domain, id)) {
         $name = ([string]$d.domain).Trim().TrimEnd('.').ToLowerInvariant()
@@ -70,8 +71,9 @@ function Test-WEYSendGridDomainValidated {
         $mark = if ($r.valid) { '✅ Published' } else { '❌ Missing or wrong' }
         "| $(Get-MtSafeMarkdown -Text $p.Name) | $(Get-MtSafeMarkdown -Text ([string]$r.type).ToUpperInvariant()) | $(Get-MtSafeMarkdown -Text ([string]$r.host)) | $(Get-MtSafeMarkdown -Text ([string]$r.data)) | $mark |"
     }
-    $security = if ($d.automatic_security) { 'Automated security (CNAME records), so SendGrid rotates the DKIM keys.' } else { 'Manual security (TXT and MX records): rotate the DKIM key yourself.' }
-    $lastCheck = if ($d.last_validation_attempt_at) { ' SendGrid last checked the records on ' + [DateTimeOffset]::FromUnixTimeSeconds([long]$d.last_validation_attempt_at).UtcDateTime.ToString('yyyy-MM-dd HH:mm') + ' UTC.' } else { '' }
+    # SendGridTools returns the fields in PascalCase (AutomaticSecurity); Dns keeps SendGrid's own records.
+    $security = if ($d.AutomaticSecurity) { 'Automated security (CNAME records), so SendGrid rotates the DKIM keys.' } else { 'Manual security (TXT and MX records): rotate the DKIM key yourself.' }
+    $lastCheck = if ($d.LastValidationAttemptAt) { ' SendGrid last checked the records on ' + [DateTimeOffset]::FromUnixTimeSeconds([long]$d.LastValidationAttemptAt).UtcDateTime.ToString('yyyy-MM-dd HH:mm') + ' UTC.' } else { '' }
 
     $summary = if ($passed) {
         "Well done. SendGrid has validated ${safeName}: its DKIM and SPF records are published."

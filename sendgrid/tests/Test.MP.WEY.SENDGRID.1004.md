@@ -2,13 +2,16 @@ For organisations that must keep mail data in the EU, Twilio SendGrid should pro
 region**. EU regional accounts and subusers are reached at `api.eu.sendgrid.com`, and their dedicated IPs are in
 the EU. Everything else is in the global region, which is the US.
 
-The test checks:
+The test checks, for the connected (global) account:
 
-- **The connected account**: it is EU when you connect with `Region = 'EU'`. An EU regional key only works there.
 - **Subusers**: each subuser's region (`eu` or `global`). Needs the scope `subusers.read`.
-- **Dedicated IPs**: each sending IP's region (`eu` or `us`). Needs the scope `ips.read`.
+- **Dedicated IPs**: each sending IP's region (`eu` or `us`), up to `MaximumIps` (1000). Needs the scope `ips.read`.
 
 A part the key has no scope for is not checked, and the result says so.
+
+**Limit:** the pack reads SendGrid through SendGridTools 0.4.7, which reaches only the global API
+(`api.sendgrid.com`). The connected account is therefore always a global one and is listed for information only,
+and an EU regional account or subuser (`api.eu.sendgrid.com`) cannot be checked at all.
 
 #### Remediation action
 

@@ -1,4 +1,4 @@
-function Get-WEYSendGridApiKeyInstance {
+﻿function Get-WEYSendGridApiKeyInstance {
     <#
     .SYNOPSIS
     Instance source of MP.WEY.SENDGRID.1002: one instance per API key of the SendGrid account, with its scopes.
@@ -13,15 +13,17 @@ function Get-WEYSendGridApiKeyInstance {
         return
     }
 
-    $keys = @((Invoke-WEYSendGridRequest -Path '/v3/api_keys?limit=500').result | Where-Object { $_ -and $_.api_key_id })
-    foreach ($k in ($keys | Sort-Object name, api_key_id)) {
-        $detail = @((Invoke-WEYSendGridRequest -Path "/v3/api_keys/$($k.api_key_id)").result) | Select-Object -First 1
-        $id = [string]$k.api_key_id
+    Connect-WEYSendGridModule
+    # Get-SGApiKey lists only SendGrid's default first page, so the list asks for 500 keys.
+    $keys = @(Invoke-SGCommand -WebMethod Get -Namespace 'api_keys' -QueryParameters 'limit=500' | Where-Object { $_ -and $_.ApiKeyId })
+    foreach ($k in ($keys | Sort-Object Name, ApiKeyId)) {
+        $detail = @(Get-SGApiKey -ApiKeyId $k.ApiKeyId) | Select-Object -First 1
+        $id = [string]$k.ApiKeyId
         [pscustomobject]@{
             # The key ID is stable, so a key can be excluded in maester-config.json; it is not the secret.
             Id    = $(if ($id -match '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z') { $id } else { 'key-' + ($id -replace '[^A-Za-z0-9._-]', '') })
-            Title = "SendGrid: API key '$($k.name)' has least privilege"
-            Data  = [pscustomobject]@{ Id = $id; Name = [string]$k.name; Scopes = @($(if ($detail) { $detail.scopes })) }
+            Title = "SendGrid: API key '$($k.Name)' has least privilege"
+            Data  = [pscustomobject]@{ Id = $id; Name = [string]$k.Name; Scopes = @($(if ($detail) { $detail.Scopes })) }
         }
     }
 }
