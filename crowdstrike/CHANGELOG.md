@@ -2,6 +2,12 @@
 
 Every release of the pack, newest first. Install-MtPack shows the version; Update-MtPack moves to a newer one.
 
+## 1.0.2
+
+- **Disconnecting revokes the token.** `Disconnect-Maester` now calls `Revoke-FalconToken`: Falcon ends the
+  token at once instead of after 30 minutes, and PSFalcon forgets the client ID and the secret it kept in memory.
+  A token of another API client in the same PowerShell session is left alone. Nothing in the tenant changes.
+
 ## 1.0.1
 
 - **The tests say what they check.** MP.WEY.FALCON.1001 is now "prevention policies block malware, not only detect

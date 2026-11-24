@@ -4,7 +4,7 @@
   "Guid": "23f038f7-cfa9-4c56-9aea-32d0c97f4dfa",
   "Name": "CrowdStrike Falcon",
   "Description": "Checks the policies of a CrowdStrike Falcon tenant: prevention policies block malware (cloud, Office files and sensor anti-malware at Moderate or higher), and sensor update policies keep sensors at n-2 or newer with uninstall protection. Reads the Falcon API with a read-only API client through the PSFalcon module and changes nothing. By Alweys C//oud (alweys.ch).",
-  "Version": "1.0.1",
+  "Version": "1.0.2",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/crowdstrike",

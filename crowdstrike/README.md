@@ -61,7 +61,8 @@ Change the settings in your `maester-config.json`, or leave out a policy:
 
 - **Service**: `WEY.FALCON.Api`, the pack's own connector ([connector/Connect-WeyFalcon.ps1](connector/Connect-WeyFalcon.ps1)).
 - **Module**: PSFalcon 2.2.9 from the PowerShell Gallery, saved and pinned by Maester at install. The pack uses
-  only its token and reading commands: `Request-FalconToken`, `Test-FalconToken`, `Get-FalconPreventionPolicy`,
+  only its token and reading commands: `Request-FalconToken`, `Test-FalconToken`, `Revoke-FalconToken` (on
+  disconnect), `Get-FalconPreventionPolicy`,
   `Get-FalconSensorUpdatePolicy` and `Get-FalconBuild`
   ([helpers/Invoke-WeyFalconRequest.ps1](helpers/Invoke-WeyFalconRequest.ps1)).
 - **Network**: the Falcon API host of your cloud, through the module: `api.crowdstrike.com`,

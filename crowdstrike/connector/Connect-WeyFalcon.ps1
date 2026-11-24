@@ -105,10 +105,25 @@ function Test-WEYFalcon {
 function Disconnect-WEYFalcon {
     <#
     .SYNOPSIS
-    Forgets the Falcon connection of this pack. The token PSFalcon holds expires on its own (after 30 minutes).
+    Ends the Falcon connection of this pack: revokes the token and makes PSFalcon forget the client ID and secret.
+
+    .DESCRIPTION
+    PSFalcon keeps the client ID and the secret in its memory to renew the token. Revoke-FalconToken ends the
+    token at Falcon (POST /oauth2/revoke) and removes both from the module. It changes nothing in the tenant.
+    A token of another API client, which the user requested in the same PSFalcon copy, is left alone.
     #>
     [CmdletBinding()]
     param()
 
+    $state = Get-MtConnectionState
+    $token = Test-FalconToken -ErrorAction SilentlyContinue
+    if ($state -and $token -and $token.ClientId -eq $state.ClientId) {
+        try {
+            Revoke-FalconToken -ErrorAction Stop 4>$null
+        } catch {
+            # The token expires on its own after 30 minutes; the connection is forgotten either way.
+            Write-Warning "Falcon did not revoke the token of the API client $($state.ClientId): $($_.Exception.Message)"
+        }
+    }
     Clear-MtConnectionState
 }
