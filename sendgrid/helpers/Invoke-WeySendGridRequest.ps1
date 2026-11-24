@@ -1,7 +1,7 @@
 function Connect-WEYSendGridModule {
     <#
     .SYNOPSIS
-    Connects the SendGridTools module that is loaded now, from the key Connect-WEYSendGrid kept.
+    Connects the SendGridTools module that is loaded now, from the key and region Connect-WEYSendGrid kept.
 
     .DESCRIPTION
     SendGridTools keeps its connection inside the module, and the copy loaded for the tests may not be the one
@@ -13,28 +13,16 @@ function Connect-WEYSendGridModule {
 
     $state = Get-MtConnectionState -Service WEY.SENDGRID.Api
     if (-not $state) { throw 'Not connected to SendGrid. Run Connect-Maester -Service WEY.SENDGRID.Api first.' }
-    Connect-SendGrid -Credential ([pscredential]::new('apikey', $state.ApiKey)) -Force -Confirm:$false 4>$null
+    Connect-SendGrid -ApiKey $state.ApiKey -Region $state.Region -Force -Confirm:$false 4>$null
 }
 
-function Get-WEYSendGridPage {
+function Get-WEYSendGridSubuser {
     <#
     .SYNOPSIS
-    Reads every page of a SendGrid list that pages with limit and offset, through Invoke-SGCommand (GET).
-
-    .DESCRIPTION
-    The dedicated SendGridTools commands (Get-SGAuthenticatedDomain, Get-SGSubuser) read only SendGrid's
-    default first page, so the lists are read here, page by page.
+    Returns every subuser of the account with its region, page by page (Get-SGSubuser reads one page per call).
     #>
     [CmdletBinding()]
     param(
-        # The API path without /v3/, such as 'whitelabel/domains'.
-        [Parameter(Mandatory)]
-        [ValidatePattern('^[a-z_/]+$')]
-        [string] $Namespace,
-
-        # More query parameters, such as 'include_region=true'.
-        [string[]] $Query = @(),
-
         [ValidateRange(1, 500)]
         [int] $PageSize = 100,
 
@@ -44,11 +32,7 @@ function Get-WEYSendGridPage {
 
     $offset = 0
     do {
-        $parameters = [System.Collections.Generic.List[string]]::new()
-        foreach ($q in $Query) { $parameters.Add($q) }
-        $parameters.Add("limit=$PageSize")
-        $parameters.Add("offset=$offset")
-        $page = @(Invoke-SGCommand -WebMethod Get -Namespace $Namespace -QueryParameters $parameters | Where-Object { $null -ne $_ })
+        $page = @(Get-SGSubuser -IncludeRegion -Limit $PageSize -Offset $offset | Where-Object { $null -ne $_ })
         $page
         $offset += $PageSize
     } while ($page.Count -eq $PageSize -and $offset -lt $MaximumItems)
@@ -72,4 +56,25 @@ function Test-WEYSendGridScope {
     if ($missing.Count -eq 0) { return $true }
     Add-MtTestResultDetail -SkippedBecause Custom -SkippedCustomReason "The SendGrid API key lacks the scope $($missing -join ', '). Give the key read access to it (Settings > API Keys > Restricted Access)."
     $false
+}
+
+function ConvertTo-WEYSendGridPlainText {
+    <#
+    .SYNOPSIS
+    Returns a name from SendGrid as plain text for a result title or field: without the characters that make
+    markdown links, images, HTML, code or tables ([ ] ( ) < > ` |) and without line breaks.
+
+    .DESCRIPTION
+    Titles and fields are shown as text in the HTML report, but other outputs (the markdown export, Teams or
+    email) may render them as markdown. API key names are free text; domain names never contain these characters.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Position = 0)]
+        [AllowNull()]
+        [object] $Text
+    )
+
+    ([string]$Text -replace '[\[\]()<>`|]', '' -replace '\s+', ' ').Trim()
 }

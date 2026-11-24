@@ -29,9 +29,8 @@
 
     if (-not (Test-WEYSendGridScope -Scope 'user.settings.enforced_tls.read')) { return $null }
 
-    # SendGridTools has no command for Enforced TLS, so its generic Invoke-SGCommand reads it (GET).
     Connect-WEYSendGridModule
-    $tls = Invoke-SGCommand -WebMethod Get -Namespace 'user/settings/enforced_tls'
+    $tls = Get-SGEnforcedTls
     $version = if ($null -ne $tls.Version) { [string]$tls.Version } else { '' }
     $versionOk = -not $version -or ([version]$version -ge [version]$MinimumVersion)
 

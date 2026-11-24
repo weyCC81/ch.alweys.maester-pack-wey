@@ -2,6 +2,21 @@
 
 Every release of the pack, newest first. Install-MtPack shows the version; Update-MtPack moves to a newer one.
 
+## 1.1.0
+
+- **EU regional accounts work again.** The pack uses SendGridTools **0.5.1**, which connects to
+  `api.eu.sendgrid.com` (`Connect-SendGrid -Region EU`). Connect with `Region = 'EU'` (or
+  `MAESTER_WEY_SENDGRID_API_REGION` = `EU`). The limit of 1.0.1 is gone.
+- MP.WEY.SENDGRID.1004 checks the account itself again ("the account and its IPs are in the EU"), and reads every
+  dedicated IP: the `MaximumIps` setting is removed. Remove it from your `maester-config.json` if you set it.
+- The tests use the module's own commands, which read every page: `Get-SGAuthenticatedDomain`, `Get-SGApiKey`,
+  `Get-SGEnforcedTls`, `Get-SGSubuser -IncludeRegion` and `Get-SGIPAddress -IncludeRegion`. The pack no longer
+  uses the generic `Invoke-SGCommand`. SendGridTools 0.5.1 refuses HTTP redirects, so the API key is only sent to
+  SendGrid.
+- Names from SendGrid (domain, user, API key name) go into result titles and the User field as plain text, without
+  the characters that make markdown links, images, HTML or tables. Found by a security audit; the HTML report was
+  not affected.
+
 ## 1.0.1
 
 - The pack reads SendGrid through the **SendGridTools** module (0.4.7, from the PowerShell Gallery) instead of its

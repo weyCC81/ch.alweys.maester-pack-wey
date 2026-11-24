@@ -19,17 +19,19 @@
     }
 
     Connect-WEYSendGridModule
-    $domains = @(Get-WEYSendGridPage -Namespace 'whitelabel/domains' | Where-Object { $_ -and $_.Domain })
+    # Get-SGAuthenticatedDomain reads every page; -ShowDNS keeps the DNS records.
+    $domains = @(Get-SGAuthenticatedDomain -ShowDNS | Where-Object { $_ -and $_.Domain })
     $shared = @($domains | Group-Object { ([string]$_.domain).ToLowerInvariant() } | Where-Object Count -GT 1 | ForEach-Object Name)
     foreach ($d in ($domains | Sort-Object domain, id)) {
         $name = ([string]$d.domain).Trim().TrimEnd('.').ToLowerInvariant()
         $suffix = if ($name -in $shared) { "$name.$($d.id)" } else { $name }
         if ($suffix -notmatch '^[a-z0-9][a-z0-9._-]{0,127}\z') { $suffix = "domain-$($d.id)" }
         $fqdn = if ($d.subdomain) { "$($d.subdomain).$name" } else { $name }
-        $title = "SendGrid: authenticated domain '$name' is validated"
-        if ($name -in $shared) { $title += " ($fqdn)" }
+        # Names come from SendGrid; titles and Fields get them as plain text (see ConvertTo-WEYSendGridPlainText).
+        $title = "SendGrid: authenticated domain '$(ConvertTo-WEYSendGridPlainText $name)' is validated"
+        if ($name -in $shared) { $title += " ($(ConvertTo-WEYSendGridPlainText $fqdn))" }
         $instance = [ordered]@{ Id = $suffix; Title = $title; Data = $d }
-        if ($d.username) { $instance['Fields'] = @{ User = [string]$d.username } }
+        if ($d.username) { $instance['Fields'] = @{ User = ConvertTo-WEYSendGridPlainText $d.username } }
         [pscustomobject]$instance
     }
 }
