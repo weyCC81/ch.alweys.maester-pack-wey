@@ -4,7 +4,7 @@
   "Guid": "cedd27fe-2383-45a2-8ac8-7918f7aedfe8",
   "Name": "PowerDMARC",
   "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing. By Alweys C//oud (alweys.ch).",
-  "Version": "2.0.0",
+  "Version": "2.0.1",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/powerdmarc",

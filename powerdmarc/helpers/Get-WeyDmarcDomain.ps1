@@ -62,3 +62,25 @@ function ConvertTo-WEYDmarcDomain {
         }
     }
 }
+
+function ConvertTo-WEYDmarcPlainText {
+    <#
+    .SYNOPSIS
+    Returns a name from PowerDMARC as plain text for a result title or field: without the characters that make
+    markdown links, images, HTML, code or tables ([ ] ( ) < > ` |) and without line breaks.
+
+    .DESCRIPTION
+    Titles and fields are shown as text in the HTML report, but other outputs (the markdown export, Teams or
+    email) may render them as markdown. Domain names never contain these characters; account names keep their
+    readable text.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Position = 0)]
+        [AllowNull()]
+        [object] $Text
+    )
+
+    ([string]$Text -replace '[\[\]()<>`|]', '' -replace '\s+', ' ').Trim()
+}

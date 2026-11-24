@@ -2,6 +2,12 @@
 
 Every release of the pack, newest first. Install-MtPack shows the version; Update-MtPack moves to a newer one.
 
+## 2.0.1
+
+- Names from PowerDMARC (domain and account) go into result titles and the Account field as plain text, without
+  the characters that make markdown links, images, HTML or tables. The published SPF record cannot end its code
+  span early. Found by a security audit; the HTML report was not affected.
+
 ## 2.0.0
 
 - **The code is now `WEY.POWERDMARC`** (was `WEY.DMARC`), with a new Guid, so Maester sees a new pack:

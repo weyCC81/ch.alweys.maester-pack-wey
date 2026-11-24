@@ -20,11 +20,12 @@
     foreach ($domain in $domains) {
         $suffix = if ($domain.Name -in $shared -and $domain.AccountId) { "$($domain.Name).$($domain.AccountId)" } else { $domain.Name }
         if ($suffix -notmatch '^[a-z0-9][a-z0-9._-]{0,127}\z') { $suffix = "domain-$($domain.Id)" }
-        $title = "PowerDMARC: Hosted SPF of '$($domain.Name)' is healthy"
-        if ($domain.Name -in $shared -and $domain.AccountName) { $title += " ($($domain.AccountName))" }
+        # Names come from PowerDMARC; titles and Fields get them as plain text (see ConvertTo-WEYDmarcPlainText).
+        $title = "PowerDMARC: Hosted SPF of '$(ConvertTo-WEYDmarcPlainText $domain.Name)' is healthy"
+        if ($domain.Name -in $shared -and $domain.AccountName) { $title += " ($(ConvertTo-WEYDmarcPlainText $domain.AccountName))" }
 
         $instance = [ordered]@{ Id = $suffix; Title = $title; Data = $domain }
-        if ($domain.AccountName) { $instance['Fields'] = @{ Account = [string]$domain.AccountName } }
+        if ($domain.AccountName) { $instance['Fields'] = @{ Account = ConvertTo-WEYDmarcPlainText $domain.AccountName } }
         [pscustomobject]$instance
     }
 }
@@ -112,7 +113,8 @@ function Test-WEYDmarcHostedSpf {
     }
     $result = "$summary`n`n| Check | Value | Expected | Result |`n| --- | --- | --- | --- |`n" + ($rows -join "`n")
     if ($record.spf_record) {
-        $result += "`n`nPublished SPF record: ``$(([string]$record.spf_record) -replace '`', "'")``"
+        # Inline code: no backtick and no line break may end it early.
+        $result += "`n`nPublished SPF record: ``$(([string]$record.spf_record) -replace '`', "'" -replace '[\r\n]+', ' ')``"
     }
     if ($errors.Count -gt 0) {
         $result += "`n`n**Errors**`n`n" + (($errors | ForEach-Object { "- $(Get-MtSafeMarkdown -Text $_)" }) -join "`n")
