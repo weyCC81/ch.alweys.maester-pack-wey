@@ -1,0 +1,56 @@
+{
+  "$schema": "https://maester.dev/schemas/maester-pack-guide-1.0.json",
+  "Summary": "Checks the policies of a CrowdStrike Falcon tenant: every enabled prevention policy blocks malware (cloud, Microsoft Office files and sensor anti-malware at Moderate or higher) and shows the Falcon icon, and every enabled sensor update policy keeps sensors at n-2 or newer with uninstall protection on. Reads only, through the PSFalcon module, on any Falcon cloud.",
+  "Prerequisites": [
+    {
+      "Text": "A Falcon API client (Support and resources > API clients and keys) with read scopes only: Prevention policies: Read and Sensor update policies: Read. A test whose scope is missing is skipped and says so."
+    },
+    {
+      "Text": "Maester installs the PSFalcon module 2.2.9 from the PowerShell Gallery with the pack."
+    }
+  ],
+  "Connect": {
+    "Steps": [
+      {
+        "Text": "Connect with the API client, on the cloud of your CID (us-1, us-2, eu-1, us-gov-1 or us-gov-2).",
+        "Command": "Connect-Maester -Service WEY.FALCON.Api -ServiceSetting @{ ClientId = '<client id>'; ClientSecret = (Read-Host -AsSecureString 'Falcon client secret'); Cloud = 'eu-1' }"
+      },
+      {
+        "Text": "A child CID in Flight Control (multi-CID): add its CID.",
+        "Command": "Connect-Maester -Service WEY.FALCON.Api -ServiceSetting @{ ClientId = '<client id>'; ClientSecret = (Read-Host -AsSecureString 'Falcon client secret'); Cloud = 'us-1'; MemberCid = '<child CID>' }"
+      }
+    ]
+  },
+  "Run": {
+    "Commands": [
+      {
+        "Text": "Run the pack on its own.",
+        "Command": "Invoke-Maester -Pack WEY.FALCON -SkipBuiltIn"
+      }
+    ],
+    "Options": [
+      {
+        "Name": "MinimumPreventionLevel",
+        "Default": "MODERATE",
+        "Text": "MP.WEY.FALCON.1001: the lowest prevention level of the anti-malware sliders (CAUTIOUS, MODERATE, AGGRESSIVE, EXTRA_AGGRESSIVE)."
+      },
+      {
+        "Name": "RequireFalconIcon",
+        "Default": "true",
+        "Text": "MP.WEY.FALCON.1001: also require Show Falcon icon to be on."
+      },
+      {
+        "Name": "MaximumReleasesBehind",
+        "Default": "2",
+        "Text": "MP.WEY.FALCON.1002: how many releases the sensor version may be behind the latest (0 to 2)."
+      }
+    ]
+  },
+  "AppOnly": {
+    "Supported": true,
+    "Text": "Runs unattended with MAESTER_WEY_FALCON_API_CLIENTID, MAESTER_WEY_FALCON_API_CLIENTSECRET and MAESTER_WEY_FALCON_API_CLOUD (and MAESTER_WEY_FALCON_API_MEMBERCID for a child CID). No Microsoft sign-in is needed."
+  },
+  "Support": {
+    "Pack": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/issues"
+  }
+}

@@ -5,6 +5,7 @@ Ensure that your cloud is always oriented the right way!
 
 | Pack | Code | Install |
 | --- | --- | --- |
+| [CrowdStrike Falcon](crowdstrike/README.md) | `WEY.FALCON` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/crowdstrike` |
 | [PowerDMARC](powerdmarc/README.md) | `WEY.POWERDMARC` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/powerdmarc` |
 | [SendGrid](sendgrid/README.md) | `WEY.SENDGRID` | `Install-MtPack weyCC81/ch.alweys.maester-pack-wey/sendgrid` |
 
