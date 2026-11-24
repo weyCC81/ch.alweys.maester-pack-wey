@@ -5,8 +5,9 @@
     sensor builds Falcon offers for the policy's platform.
 
     .DESCRIPTION
-    The instance ID is the policy ID. Disabled policies apply to no host and are left out. The field Platform
-    names the policy's platform (Windows, Mac, Linux), which the report groups and filters by.
+    The instance ID is the policy ID. Disabled policies apply to no host and are left out, and so are policies of
+    platforms other than Windows, Mac and Linux (such as K8S). The field Platform names the policy's platform,
+    which the report groups and filters by.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
@@ -16,7 +17,8 @@
     $scope = 'Sensor update policies: Read'
     $read = Get-WEYFalconData -Command Get-FalconSensorUpdatePolicy -Scope $scope -Parameter @{ Detailed = $true; All = $true }
     if ($read.Skipped) { return }
-    $policies = @($read.Items | Where-Object { $_.id -and $_.enabled -eq $true } | Sort-Object platform_name, precedence, name)
+    # Only the desktop and server sensors have builds and uninstall protection; other platforms (K8S) are left out.
+    $policies = @($read.Items | Where-Object { $_.id -and $_.enabled -eq $true -and [string]$_.platform_name -in 'Windows', 'Mac', 'Linux' } | Sort-Object platform_name, precedence, name)
 
     # The released (prod) builds per platform, read once; the tagged ones are the latest (n), n-1 and n-2.
     $builds = @{}
@@ -32,7 +34,7 @@
         [pscustomobject]@{
             Id     = $(if ($id -match '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z') { $id } else { 'policy-' + ($id -replace '[^A-Za-z0-9._-]', '') })
             # Policy names are free text: the title and fields get them as plain text.
-            Title  = "Falcon: sensor update policy '$(ConvertTo-WEYFalconPlainText $p.name)' keeps sensors current and protected"
+            Title  = "Falcon: $(ConvertTo-WEYFalconPlainText $p.platform_name) $(if ([string]$p.name -eq 'platform_default') { 'default sensor update policy' } else { "sensor update policy '$(ConvertTo-WEYFalconPlainText $p.name)'" }) keeps the sensor up to date and uninstall-protected"
             Fields = @{ Platform = ConvertTo-WEYFalconPlainText $p.platform_name }
             Data   = [pscustomobject]@{ Policy = $p; Builds = @($builds[([string]$p.platform_name).ToLowerInvariant()]) }
         }
@@ -47,7 +49,7 @@ function Test-WEYFalconSensorUpdatePolicy {
     #>
     [MaesterTest(
         Id                 = 'MP.WEY.FALCON.1002',
-        Title              = 'Falcon: sensor update policies keep sensors current and protected',
+        Title              = 'Falcon: sensor update policies keep the sensor up to date and uninstall-protected',
         Severity           = 'High',
         Product            = 'crowdstrike',
         Feature            = 'sensor-update-policy',
@@ -124,9 +126,9 @@ function Test-WEYFalconSensorUpdatePolicy {
     $passed = $failing.Count -eq 0
 
     $summary = if ($passed) {
-        "Well done. The $safePlatform sensor update policy $safeName keeps its sensors current and protected."
+        "Well done. The $safePlatform sensor update policy $safeName keeps its sensors up to date and uninstall-protected."
     } else {
-        "The $safePlatform sensor update policy $safeName does not keep its sensors current and protected: $($failing.Check -join ', ')."
+        "The $safePlatform sensor update policy $safeName does not keep its sensors up to date and uninstall-protected: $($failing.Check -join ', ')."
     }
     $rows = foreach ($c in $checks) {
         $mark = switch ($c.State) { 'Pass' { '✅ Pass' } 'Fail' { '❌ Fail' } 'Unknown' { 'Not compared' } default { 'Not applicable' } }

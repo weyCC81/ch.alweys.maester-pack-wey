@@ -1,16 +1,18 @@
-# Gives every pull request to main the next version of the pack, so merging it lands that version on main. The
-# label on the pull request picks the part to raise:
+# Gives every pull request to main the next version of each pack it changes, so merging it lands those versions on
+# main. The label on the pull request picks the part to raise, for every changed pack:
 #   release:major, release:minor, release:patch (the default when there is no label), or release:none.
-# When the pull request is opened, updated or relabelled, it sets Version in maester-pack.json one step above the
-# version on main, turns "## Unreleased" in CHANGELOG.md into that version, and pushes the commit to the pull
-# request. Pull the branch before you push to it again. If main moves on, updating the pull request raises it again.
+# When the pull request is opened, updated or relabelled, it sets Version in each changed pack's maester-pack.json one
+# step above that pack's version on main, turns "## Unreleased" in its CHANGELOG.md into that version, and pushes
+# the commit to the pull request. Pull the branch before you push to it again. If main moves on, updating the pull
+# request raises it again. A pack is a top-level folder with a maester-pack.json; a pack new on this branch keeps
+# the version it has.
 #
 # A push made with the workflow's token starts no other workflow, so the pack check would never run on the new
 # commit. This workflow runs it (check-pack.yml) on that commit and reports the result as the "check" the ruleset
 # requires. It runs for branches of this repository only; a pull request from a fork is raised by hand.
 #
-# It runs only when the repository variable PACK_RELEASES is true, with release.yml. Without it the pack has no
-# releases and Install-MtPack installs the default branch. See "Versions and releases" in README.md.
+# It runs only when the repository variable PACK_RELEASES is true, with release.yml. Without it the packs have no
+# releases and Install-MtPack installs the default branch. See "Versions and releases" in powerdmarc/README.md.
 name: Bump version
 
 on:
@@ -28,9 +30,6 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       !github.event.pull_request.draft
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: powerdmarc
     permissions:
       contents: write
       pull-requests: read
@@ -38,12 +37,14 @@ jobs:
       sha: ${{ steps.bump.outputs.sha }}
       version: ${{ steps.bump.outputs.version }}
     steps:
+      # No credentials are kept while the branch's files are read; git gets them only for the push at the end.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Raise the version
+      - name: Raise the versions
         id: bump
         shell: pwsh
         env:
@@ -55,55 +56,85 @@ jobs:
           # Read the labels now, not from the event, so the latest label counts.
           $labels = @(gh pr view $env:PR_NUMBER --json labels --jq '.labels[].name')
           if ($labels -contains 'release:none') {
-            Write-Output 'The pull request has release:none: the version stays as it is.'
+            Write-Output 'The pull request has release:none: the versions stay as they are.'
             return
           }
           $part = if ($labels -contains 'release:major') { 'major' } elseif ($labels -contains 'release:minor') { 'minor' } else { 'patch' }
 
+          # The checkout kept no credentials: gh lends git the workflow token for the fetch and the push below.
+          gh auth setup-git
           git fetch --quiet origin main
-          $base = [version](git show origin/main:./maester-pack.json | ConvertFrom-Json).Version
-          $text = Get-Content -LiteralPath maester-pack.json -Raw
-          $current = [version]($text | ConvertFrom-Json).Version
-          $next = switch ($part) {
-            'major' { '{0}.0.0' -f ($base.Major + 1) }
-            'minor' { '{0}.{1}.0' -f $base.Major, ($base.Minor + 1) }
-            default { '{0}.{1}.{2}' -f $base.Major, $base.Minor, ([math]::Max($base.Build, 0) + 1) }
-          }
-          if ($current -eq [version]$next) {
-            Write-Output "The version is already $next ($part above $base on main)."
+
+          # The packs this pull request changes: top-level folders with a maester-pack.json.
+          $changed = @(git diff --name-only origin/main...HEAD | ForEach-Object { ($_ -split '/')[0] } | Sort-Object -Unique |
+            Where-Object { $_ -match '^[A-Za-z0-9._-]+$' -and (Test-Path -LiteralPath (Join-Path $_ 'maester-pack.json') -PathType Leaf) })
+          if (-not $changed) {
+            Write-Output 'The pull request changes no pack.'
             return
           }
 
-          # Change only the value of the manifest's own Version, so the rest of the file keeps its layout.
-          $text = ([regex]'("Version"\s*:\s*")[^"]*(")').Replace($text, "`${1}$next`${2}", 1)
-          if (($text | ConvertFrom-Json).Version -ne $next) { throw 'Could not change Version in maester-pack.json.' }
-          [System.IO.File]::WriteAllText((Resolve-Path maester-pack.json), $text)
+          $raised = [System.Collections.Generic.List[string]]::new()
+          foreach ($pack in $changed) {
+            $mainManifest = git show "origin/main:$pack/maester-pack.json" 2>$null
+            if ($LASTEXITCODE -ne 0 -or -not $mainManifest) {
+              $global:LASTEXITCODE = 0
+              Write-Output "$pack is new on this branch: its version stays as it is."
+              continue
+            }
+            $base = [version](($mainManifest -join "`n") | ConvertFrom-Json).Version
+            $manifestPath = Join-Path $pack 'maester-pack.json'
+            $logPath = Join-Path $pack 'CHANGELOG.md'
+            $text = Get-Content -LiteralPath $manifestPath -Raw
+            $current = [version]($text | ConvertFrom-Json).Version
+            $next = switch ($part) {
+              'major' { '{0}.0.0' -f ($base.Major + 1) }
+              'minor' { '{0}.{1}.0' -f $base.Major, ($base.Minor + 1) }
+              default { '{0}.{1}.{2}' -f $base.Major, $base.Minor, ([math]::Max($base.Build, 0) + 1) }
+            }
+            if ($current -eq [version]$next) {
+              Write-Output "$pack is already $next ($part above $base on main)."
+              continue
+            }
 
-          # The changelog: "## Unreleased" becomes the version. A heading this workflow wrote before (the label
-          # changed, or main moved on) moves to the new version. Without either, the pull request's title is the entry.
-          $log = Get-Content -LiteralPath CHANGELOG.md -Raw
-          $unreleased = [regex]'(?m)^## Unreleased[ \t]*\r?$'
-          $earlier = [regex]('(?m)^## ' + [regex]::Escape([string]$current) + '[ \t]*\r?$')
-          $mainLog = (git show origin/main:./CHANGELOG.md) -join "`n"
-          if ($unreleased.IsMatch($log)) {
-            $log = $unreleased.Replace($log, "## $next", 1)
-          } elseif ($current -gt $base -and $earlier.IsMatch($log) -and -not $earlier.IsMatch($mainLog)) {
-            $log = $earlier.Replace($log, "## $next", 1)
-          } else {
-            $entry = "## $next`n`n- $env:PR_TITLE (#$env:PR_NUMBER)`n`n"
-            $first = [regex]::Match($log, '(?m)^## ')
-            $log = if ($first.Success) { $log.Insert($first.Index, $entry) } else { $log.TrimEnd() + "`n`n" + $entry }
+            # Change only the value of the manifest's own Version, so the rest of the file keeps its layout.
+            $text = ([regex]'("Version"\s*:\s*")[^"]*(")').Replace($text, "`${1}$next`${2}", 1)
+            if (($text | ConvertFrom-Json).Version -ne $next) { throw "Could not change Version in $manifestPath." }
+            [System.IO.File]::WriteAllText((Resolve-Path -LiteralPath $manifestPath), $text)
+
+            # The changelog: "## Unreleased" becomes the version. A heading this workflow wrote before (the label
+            # changed, or main moved on) moves to the new version. Without either, the pull request's title is the entry.
+            if (Test-Path -LiteralPath $logPath -PathType Leaf) {
+              $log = Get-Content -LiteralPath $logPath -Raw
+              $unreleased = [regex]'(?m)^## Unreleased[ \t]*\r?$'
+              $earlier = [regex]('(?m)^## ' + [regex]::Escape([string]$current) + '[ \t]*\r?$')
+              $mainLog = (git show "origin/main:$pack/CHANGELOG.md" 2>$null) -join "`n"
+              $global:LASTEXITCODE = 0
+              if ($unreleased.IsMatch($log)) {
+                $log = $unreleased.Replace($log, "## $next", 1)
+              } elseif ($current -gt $base -and $earlier.IsMatch($log) -and -not $earlier.IsMatch($mainLog)) {
+                $log = $earlier.Replace($log, "## $next", 1)
+              } else {
+                $entry = "## $next`n`n- $env:PR_TITLE (#$env:PR_NUMBER)`n`n"
+                $first = [regex]::Match($log, '(?m)^## ')
+                $log = if ($first.Success) { $log.Insert($first.Index, $entry) } else { $log.TrimEnd() + "`n`n" + $entry }
+              }
+              [System.IO.File]::WriteAllText((Resolve-Path -LiteralPath $logPath), $log)
+            }
+
+            git add -- $manifestPath
+            if (Test-Path -LiteralPath $logPath -PathType Leaf) { git add -- $logPath }
+            $raised.Add("$pack $next")
+            "Set **$pack** to **$next** ($part above $base on main)." >> $env:GITHUB_STEP_SUMMARY
           }
-          [System.IO.File]::WriteAllText((Resolve-Path CHANGELOG.md), $log)
+          if ($raised.Count -eq 0) { return }
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add maester-pack.json CHANGELOG.md
-          git commit --quiet -m "Version $next"
+          git commit --quiet -m "Version $($raised -join ', ')"
           git push --quiet origin "HEAD:$($env:HEAD_REF)"
+          if ($LASTEXITCODE -ne 0) { throw 'Could not push the version commit.' }
           "sha=$(git rev-parse HEAD)" >> $env:GITHUB_OUTPUT
-          "version=$next" >> $env:GITHUB_OUTPUT
-          "Set the version to **$next** ($part above $base on main)." >> $env:GITHUB_STEP_SUMMARY
+          "version=$($raised -join ', ')" >> $env:GITHUB_OUTPUT
 
   validate:
     needs: bump
@@ -133,5 +164,5 @@ jobs:
           if [ "$RESULT" = "success" ]; then conclusion=success; fi
           gh api "repos/$GITHUB_REPOSITORY/check-runs" \
             -f name=check -f head_sha="$SHA" -f status=completed -f conclusion="$conclusion" -f details_url="$RUN_URL" \
-            -f "output[title]=Pack check of version $VERSION: $RESULT" \
-            -f "output[summary]=The version commit was checked by the Bump version on approval run: $RUN_URL"
+            -f "output[title]=Pack check of $VERSION: $RESULT" \
+            -f "output[summary]=The version commit was checked by the Bump version run: $RUN_URL"

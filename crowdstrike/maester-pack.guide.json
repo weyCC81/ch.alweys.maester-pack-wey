@@ -1,6 +1,6 @@
 {
   "$schema": "https://maester.dev/schemas/maester-pack-guide-1.0.json",
-  "Summary": "Checks the policies of a CrowdStrike Falcon tenant: every enabled prevention policy blocks malware (cloud, Microsoft Office files and sensor anti-malware at Moderate or higher) and shows the Falcon icon, and every enabled sensor update policy keeps sensors at n-2 or newer with uninstall protection on. Reads only, through the PSFalcon module, on any Falcon cloud.",
+  "Summary": "Checks the policies of a CrowdStrike Falcon tenant: every enabled prevention policy blocks malware (cloud, Microsoft Office files and sensor anti-malware at Moderate or higher), and every enabled sensor update policy keeps sensors at n-2 or newer with uninstall protection on. Reads only, through the PSFalcon module, on any Falcon cloud.",
   "Prerequisites": [
     {
       "Text": "A Falcon API client (Support and resources > API clients and keys) with read scopes only: Prevention policies: Read and Sensor update policies: Read. A test whose scope is missing is skipped and says so."
@@ -33,11 +33,6 @@
         "Name": "MinimumPreventionLevel",
         "Default": "MODERATE",
         "Text": "MP.WEY.FALCON.1001: the lowest prevention level of the anti-malware sliders (CAUTIOUS, MODERATE, AGGRESSIVE, EXTRA_AGGRESSIVE)."
-      },
-      {
-        "Name": "RequireFalconIcon",
-        "Default": "true",
-        "Text": "MP.WEY.FALCON.1001: also require Show Falcon icon to be on."
       },
       {
         "Name": "MaximumReleasesBehind",

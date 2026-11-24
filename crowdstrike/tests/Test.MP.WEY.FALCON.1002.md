@@ -8,7 +8,8 @@ Each enabled CrowdStrike Falcon **sensor update policy** should keep its sensors
 
 The test gives one result per enabled sensor update policy, including each platform's default policy, and compares
 a pinned build with the released builds Falcon lists for the platform. Results carry the field **Platform**.
-Disabled policies apply to no host and are left out. Needs the API client scope **Sensor update policies: Read**.
+Disabled policies apply to no host and are left out, and so are policies of platforms other than Windows, Mac
+and Linux (such as K8S). Needs the API client scope **Sensor update policies: Read**.
 
 #### Remediation action
 

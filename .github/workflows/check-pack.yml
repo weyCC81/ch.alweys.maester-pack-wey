@@ -20,14 +20,14 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  pack:
     runs-on: ubuntu-latest
     # One job per pack folder in this repository.
     strategy:
       fail-fast: false
       matrix:
-        pack: [powerdmarc, sendgrid]
-    name: check (${{ matrix.pack }})
+        pack: [crowdstrike, powerdmarc, sendgrid]
+    name: pack (${{ matrix.pack }})
     defaults:
       run:
         working-directory: ${{ matrix.pack }}
@@ -35,10 +35,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.ref }}
+          persist-credentials: false
 
+      # Pinned, so a new Maester release cannot change the result of a check. Raise it on purpose.
       - name: Install Maester
         shell: pwsh
-        run: Install-PSResource -Name Maester -Prerelease -TrustRepository -Quiet
+        run: Install-PSResource -Name Maester -Version '3.0.0-rc83' -Prerelease -TrustRepository -Quiet
 
       - name: Check the pack
         shell: pwsh
@@ -74,3 +76,16 @@ jobs:
           $results | Format-Table Id, Result, ReasonCode -AutoSize | Out-String -Width 200
           $broken = @($results | Where-Object ReasonCode -In 'InvalidMetadata', 'InvalidReturn', 'InvalidConfiguration', 'InvalidInstanceId', 'InstanceSourceFailed')
           if ($broken) { throw "The engine could not run $($broken.Count) test(s): $($broken.Id -join ', ')" }
+
+  # The one status the ruleset requires ("check"): it passes only when every pack passed.
+  check:
+    needs: pack
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every pack passed
+        env:
+          RESULT: ${{ needs.pack.result }}
+        run: |
+          echo "Packs: $RESULT"
+          test "$RESULT" = "success"

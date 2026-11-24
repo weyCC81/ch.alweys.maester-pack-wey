@@ -38,15 +38,18 @@ skipped and names the scope.
 
 | ID | What it checks |
 | --- | --- |
-| MP.WEY.FALCON.1001 | One result per enabled prevention policy: Cloud-based anti-malware, Cloud anti-malware for Microsoft Office files and Sensor-based anti-malware prevent at Moderate or higher, and Show Falcon icon is on |
-| MP.WEY.FALCON.1002 | One result per enabled sensor update policy: sensor version updates are on, at n-2 or newer (automatic or pinned), and uninstall protection is on (Windows and Mac) |
+| MP.WEY.FALCON.1001 | **Prevention policies block malware, not only detect it.** One result per enabled prevention policy: Cloud-based anti-malware, Cloud anti-malware for Microsoft Office files and Sensor-based anti-malware prevent at Moderate or higher |
+| MP.WEY.FALCON.1002 | **Sensor update policies keep the sensor up to date and uninstall-protected.** One result per enabled sensor update policy: sensor version updates are on, at n-2 or newer (automatic or pinned), and uninstall protection is on (Windows and Mac) |
+
+Not checked: **Show Falcon icon**. It is a setting of the separate **System tray policies**
+(`/policies/system-tray` in the console), which neither the Falcon API reference nor PSFalcon 2.2.9 offers to read.
 
 Change the settings in your `maester-config.json`, or leave out a policy:
 
 ```json
 {
   "TestSettings": [
-    { "Id": "MP.WEY.FALCON.1001", "Parameters": { "MinimumPreventionLevel": "AGGRESSIVE", "RequireFalconIcon": false } },
+    { "Id": "MP.WEY.FALCON.1001", "Parameters": { "MinimumPreventionLevel": "AGGRESSIVE" } },
     { "Id": "MP.WEY.FALCON.1002", "Parameters": { "MaximumReleasesBehind": 1 } }
   ]
 }

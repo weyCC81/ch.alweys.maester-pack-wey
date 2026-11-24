@@ -2,7 +2,7 @@
 TestResults/
 test-results/
 maester-config.json
-TEST.ps1
+test/
 branding/*.png
 RELEASE.ps1
 docs/sendgridtools-issue-draft.md

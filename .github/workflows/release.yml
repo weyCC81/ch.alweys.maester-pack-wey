@@ -26,10 +26,12 @@ jobs:
     permissions:
       contents: write
     steps:
+      # gh uses GH_TOKEN, so git keeps no credentials.
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Publish the release
         shell: pwsh

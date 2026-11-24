@@ -4,8 +4,9 @@
     Instance source of MP.WEY.FALCON.1001: one instance per enabled prevention policy in Falcon.
 
     .DESCRIPTION
-    The instance ID is the policy ID. Disabled policies apply to no host and are left out. The field Platform
-    names the policy's platform (Windows, Mac, Linux), which the report groups and filters by.
+    The instance ID is the policy ID. Disabled policies apply to no host and are left out, and so are policies of
+    platforms other than Windows, Mac and Linux. The field Platform names the policy's platform, which the report
+    groups and filters by.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
@@ -15,12 +16,14 @@
     # -Detailed reads the combined endpoint with every setting; -All reads every page.
     $read = Get-WEYFalconData -Command Get-FalconPreventionPolicy -Scope 'Prevention policies: Read' -Parameter @{ Detailed = $true; All = $true }
     if ($read.Skipped) { return }
-    foreach ($p in ($read.Items | Where-Object { $_.id -and $_.enabled -eq $true } | Sort-Object platform_name, precedence, name)) {
+    # Only the desktop and server sensors have these settings; mobile (Android, iOS) policies are left out.
+    $platforms = 'Windows', 'Mac', 'Linux'
+    foreach ($p in ($read.Items | Where-Object { $_.id -and $_.enabled -eq $true -and [string]$_.platform_name -in $platforms } | Sort-Object platform_name, precedence, name)) {
         $id = [string]$p.id
         [pscustomobject]@{
             Id     = $(if ($id -match '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\z') { $id } else { 'policy-' + ($id -replace '[^A-Za-z0-9._-]', '') })
             # Policy names are free text: the title and fields get them as plain text.
-            Title  = "Falcon: prevention policy '$(ConvertTo-WEYFalconPlainText $p.name)' has the key protections on"
+            Title  = "Falcon: $(ConvertTo-WEYFalconPlainText $p.platform_name) $(if ([string]$p.name -eq 'platform_default') { 'default prevention policy' } else { "prevention policy '$(ConvertTo-WEYFalconPlainText $p.name)'" }) blocks malware"
             Fields = @{ Platform = ConvertTo-WEYFalconPlainText $p.platform_name }
             Data   = $p
         }
@@ -30,13 +33,12 @@
 function Test-WEYFalconPreventionPolicy {
     <#
     .SYNOPSIS
-    Checks that an enabled Falcon prevention policy shows the Falcon icon and blocks malware: Cloud-based
-    anti-malware, Cloud anti-malware for Microsoft Office files and Sensor-based anti-malware prevent at the
-    minimum level or higher.
+    Checks that an enabled Falcon prevention policy blocks malware: Cloud-based anti-malware, Cloud
+    anti-malware for Microsoft Office files and Sensor-based anti-malware prevent at the minimum level or higher.
     #>
     [MaesterTest(
         Id                 = 'MP.WEY.FALCON.1001',
-        Title              = 'Falcon: prevention policies have the key protections on',
+        Title              = 'Falcon: prevention policies block malware, not only detect it',
         Severity           = 'High',
         Product            = 'crowdstrike',
         Feature            = 'prevention-policy',
@@ -56,10 +58,7 @@ function Test-WEYFalconPreventionPolicy {
 
         # The lowest prevention level the anti-malware sliders may have.
         [ValidateSet('CAUTIOUS', 'MODERATE', 'AGGRESSIVE', 'EXTRA_AGGRESSIVE')]
-        [string] $MinimumPreventionLevel = 'MODERATE',
-
-        # Require the setting Show Falcon icon to be on.
-        [bool] $RequireFalconIcon = $true
+        [string] $MinimumPreventionLevel = 'MODERATE'
     )
 
     $policy = $Instance.Data
@@ -72,13 +71,10 @@ function Test-WEYFalconPreventionPolicy {
 
     # The settings to check, by the ID the Falcon API uses or by the name the console shows.
     $wanted = @(
-        [pscustomobject]@{ Name = 'Cloud-based anti-malware'; Ids = @('CloudAntiMalware'); Names = @('Cloud-Based Anti-Malware'); Kind = 'slider' }
-        [pscustomobject]@{ Name = 'Cloud anti-malware for Microsoft Office files'; Ids = @('CloudAntiMalwareForMicrosoftOfficeFiles'); Names = @('Cloud Anti-malware For Microsoft Office Files'); Kind = 'slider' }
-        [pscustomobject]@{ Name = 'Sensor-based anti-malware'; Ids = @('OnSensorMLSlider'); Names = @('Sensor-Based Anti-Malware'); Kind = 'slider' }
+        [pscustomobject]@{ Name = 'Cloud-based anti-malware'; Ids = @('CloudAntiMalware'); Names = @('Cloud Anti-malware', 'Cloud-Based Anti-Malware') }
+        [pscustomobject]@{ Name = 'Cloud anti-malware for Microsoft Office files'; Ids = @('CloudAntiMalwareForMicrosoftOfficeFiles'); Names = @('Cloud Anti-malware For Microsoft Office Files') }
+        [pscustomobject]@{ Name = 'Sensor-based anti-malware'; Ids = @('OnSensorMLSlider'); Names = @('Sensor Anti-malware', 'Sensor-Based Anti-Malware') }
     )
-    if ($RequireFalconIcon) {
-        $wanted += [pscustomobject]@{ Name = 'Show Falcon icon'; Ids = @(); Names = @('Show Falcon icon'); Kind = 'toggle' }
-    }
 
     $checks = @(foreach ($w in $wanted) {
         $s = $settings | Where-Object { ([string]$_.id -in $w.Ids) -or (([string]$_.name).Trim() -in $w.Names) } | Select-Object -First 1
@@ -87,18 +83,13 @@ function Test-WEYFalconPreventionPolicy {
             [pscustomobject]@{ Setting = $w.Name; Value = 'not in this policy'; Expected = '-'; State = 'NotApplicable' }
             continue
         }
-        if ($w.Kind -eq 'toggle') {
-            $on = [bool]$s.value.enabled
-            [pscustomobject]@{ Setting = $w.Name; Value = $(if ($on) { 'on' } else { 'off' }); Expected = 'on'; State = $(if ($on) { 'Pass' } else { 'Fail' }) }
-        } else {
-            $prevention = ([string]$s.value.prevention).ToUpperInvariant()
-            if (-not $prevention) { $prevention = 'DISABLED' }
-            $detection = ([string]$s.value.detection).ToUpperInvariant()
-            $value = "prevention $prevention"
-            if ($detection) { $value += ", detection $detection" }
-            $ok = [array]::IndexOf($levels, $prevention) -ge $minimum
-            [pscustomobject]@{ Setting = $w.Name; Value = $value; Expected = "prevention $MinimumPreventionLevel or higher"; State = $(if ($ok) { 'Pass' } else { 'Fail' }) }
-        }
+        $prevention = ([string]$s.value.prevention).ToUpperInvariant()
+        if (-not $prevention) { $prevention = 'DISABLED' }
+        $detection = ([string]$s.value.detection).ToUpperInvariant()
+        $value = "prevention $prevention"
+        if ($detection) { $value += ", detection $detection" }
+        $ok = [array]::IndexOf($levels, $prevention) -ge $minimum
+        [pscustomobject]@{ Setting = $w.Name; Value = $value; Expected = "prevention $MinimumPreventionLevel or higher"; State = $(if ($ok) { 'Pass' } else { 'Fail' }) }
     })
     $failing = @($checks | Where-Object State -EQ 'Fail')
     $checked = @($checks | Where-Object State -NE 'NotApplicable')
@@ -106,11 +97,11 @@ function Test-WEYFalconPreventionPolicy {
 
     $platform = Get-MtSafeMarkdown -Text ([string]$policy.platform_name)
     $summary = if ($passed) {
-        "Well done. The $platform prevention policy $safeName has the key protections on."
+        "Well done. The $platform prevention policy $safeName blocks malware with cloud and sensor anti-malware."
     } elseif ($checked.Count -eq 0) {
         "The $platform prevention policy $safeName has none of the settings this test checks."
     } else {
-        "The $platform prevention policy $safeName does not protect enough: $($failing.Setting -join ', ')."
+        "The $platform prevention policy $safeName only detects some malware and lets it run: $($failing.Setting -join ', ')."
     }
     $rows = foreach ($c in $checks) {
         $mark = switch ($c.State) { 'Pass' { '✅ Pass' } 'Fail' { '❌ Fail' } default { 'Not applicable' } }
