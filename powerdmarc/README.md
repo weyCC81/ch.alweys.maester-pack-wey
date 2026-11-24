@@ -5,8 +5,10 @@
 **by [Alweys C//oud](https://www.alweys.ch): ensure that your cloud is always oriented the right way.**
 
 A [Maester Pack](https://maester.dev/docs/next/packs) that checks the email authentication
-[PowerDMARC](https://powerdmarc.com) manages for your domains. It reads through the PowerDMARC API with the
-[PowerDMARC](https://www.powershellgallery.com/packages/PowerDMARC) PowerShell module and changes nothing.
+[PowerDMARC](https://powerdmarc.com) manages for your domains, and that every email domain of your Microsoft 365
+tenant is onboarded there. It reads through the PowerDMARC API with the
+[PowerDMARC](https://www.powershellgallery.com/packages/PowerDMARC) PowerShell module, and the tenant's domains
+through Microsoft Graph, and changes nothing.
 
 Not made by or affiliated with PowerDMARC.
 
@@ -34,6 +36,15 @@ Connect-Maester -Service WEY.POWERDMARC.Api -ServiceSetting @{
 Invoke-Maester -Pack WEY.POWERDMARC -SkipBuiltIn
 ```
 
+MP.WEY.POWERDMARC.1002 also needs Microsoft Graph. Connect both at once; the default `Connect-Maester` scopes
+include `Directory.Read.All`, which can read the tenant's domains (`Domain.Read.All` is the least it needs):
+
+```powershell
+Connect-Maester -Service Graph, WEY.POWERDMARC.Api -ServiceSetting @{ ApiToken = (Read-Host -AsSecureString 'PowerDMARC token'); Mode = 'Reseller'; BaseUri = 'reseller.powerdmarc.com' }
+```
+
+Without Graph, MP.WEY.POWERDMARC.1002 is skipped and MP.WEY.POWERDMARC.1001 still runs.
+
 For unattended runs, put the token in the `MAESTER_WEY_POWERDMARC_API_APITOKEN` environment variable (and
 `..._MODE`, `..._BASEURI`, `..._ACCOUNTID` as needed) instead of `-ServiceSetting`. Keep it out of
 `maester-config.json`. Without a connection the tests are skipped.
@@ -50,6 +61,7 @@ For unattended runs, put the token in the `MAESTER_WEY_POWERDMARC_API_APITOKEN` 
 | ID | What it checks |
 | --- | --- |
 | MP.WEY.POWERDMARC.1001 | One result per domain: the Hosted SPF (PowerSPF) record needs at most 10 DNS lookups and at most 2 void lookups, has no errors, and ends with `-all` or `~all`. Domains without Hosted SPF are skipped |
+| MP.WEY.POWERDMARC.1002 | One result per verified email domain of the Microsoft 365 tenant: it is onboarded in PowerDMARC (a subdomain whose parent is onboarded needs investigation). `MP.WEY.POWERDMARC.1002.not-in-tenant` lists the PowerDMARC domains the tenant does not have. `*.onmicrosoft.com` is left out |
 
 Each domain gets its own result, `MP.WEY.POWERDMARC.1001.<domain>`. In Reseller mode each result has the field
 **Account**, the customer account it belongs to, so the report groups and filters the domains by customer. A domain
@@ -67,15 +79,36 @@ Change the limits in your `maester-config.json`, for every domain or for one, or
 }
 ```
 
+MP.WEY.POWERDMARC.1002 compares the tenant with the PowerDMARC domains of one customer account in Reseller mode.
+Name it per tenant in `GlobalSettings`; without it the connection's `AccountId` is used, and without that every
+customer account (then the `not-in-tenant` result is left out, as it would list the other customers' domains):
+
+```json
+{
+  "GlobalSettings": {
+    "WEY.POWERDMARC.TenantAccountId": 42,
+    "WEY.POWERDMARC.IncludeInitialDomains": false
+  }
+}
+```
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `WEY.POWERDMARC.TenantAccountId` | `0` | Reseller mode: the customer account that holds this tenant's domains; `0` uses the connection's `AccountId`, else every account |
+| `WEY.POWERDMARC.IncludeInitialDomains` | `false` | Also check the tenant's `*.onmicrosoft.com` domains |
+
 ## What the pack reaches
 
 `Uses` in [maester-pack.json](maester-pack.json) declares it, and Install-MtPack shows it before installing:
 
-- **Service**: `WEY.POWERDMARC.Api`, the pack's own connector
-  ([connector/Connect-WeyDmarcPowerDmarc.ps1](connector/Connect-WeyDmarcPowerDmarc.ps1)).
+- **Services**: `WEY.POWERDMARC.Api`, the pack's own connector
+  ([connector/Connect-WeyDmarcPowerDmarc.ps1](connector/Connect-WeyDmarcPowerDmarc.ps1)), and Microsoft Graph
+  for MP.WEY.POWERDMARC.1002.
+- **Graph scopes**: `Domain.Read.All`, to read the tenant's domains (`GET /domains`).
 - **Module**: PowerDMARC 0.1.1 from the PowerShell Gallery, saved and pinned by Maester at install.
-- **Network**: `*.powerdmarc.com`, through the module. The module sends only `GET` requests.
-- **Tenant writes and Graph scopes**: none.
+- **Network**: `*.powerdmarc.com`, through the module. The module sends only `GET` requests. Graph through
+  Maester's own connection.
+- **Tenant writes**: none.
 
 ## Develop
 
@@ -98,7 +131,7 @@ A test is a Maester native test: see [Writing native tests](https://maester.dev/
 | --- | --- |
 | `maester-pack.json` | The manifest: ID, code, version, the suite, helpers, the connector and what the pack uses |
 | `tests/` | The suite: `suite.json`, and one `Test.<ID>.ps1` and `Test.<ID>.md` per test |
-| `helpers/` | Functions the tests call: `Get-WEYDmarcDomain` lists the domains in scope with their customer account, and `Connect-WEYDmarcPowerDmarcModule` connects the loaded PowerDMARC module |
+| `helpers/` | Functions the tests call: `Get-WEYDmarcDomain` lists the domains in scope (or of one customer account) with their customer account, and `Connect-WEYDmarcPowerDmarcModule` connects the loaded PowerDMARC module |
 | `connector/` | `Connect-`, `Test-` and `Disconnect-WEYDmarcPowerDmarc` for the PowerDMARC API |
 | `assets/banner.png` | The image the pack index shows when it features the pack |
 

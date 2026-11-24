@@ -3,8 +3,8 @@
   "Id": "weycc81.powerdmarc",
   "Guid": "cedd27fe-2383-45a2-8ac8-7918f7aedfe8",
   "Name": "PowerDMARC",
-  "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism. Reads through the PowerDMARC API and changes nothing. By Alweys C//oud (alweys.ch).",
-  "Version": "2.0.1",
+  "Description": "Checks the email authentication that PowerDMARC manages for your domains, starting with Hosted SPF (PowerSPF): DNS lookups, void lookups, errors and the all mechanism, and that every email domain of the Microsoft 365 tenant is onboarded. Reads through the PowerDMARC API and Microsoft Graph and changes nothing. By Alweys C//oud (alweys.ch).",
+  "Version": "2.1.0",
   "Publisher": "weycc81",
   "License": "MIT",
   "Homepage": "https://github.com/weyCC81/ch.alweys.maester-pack-wey/tree/main/powerdmarc",
@@ -30,9 +30,12 @@
   ],
   "Uses": {
     "Services": [
+      "Graph",
       "WEY.POWERDMARC.Api"
     ],
-    "GraphScopes": [],
+    "GraphScopes": [
+      "Domain.Read.All"
+    ],
     "TenantWrites": [],
     "Network": [
       "*.powerdmarc.com"
@@ -50,6 +53,18 @@
     "DMARC",
     "SPF"
   ],
+  "Settings": {
+    "WEY.POWERDMARC.TenantAccountId": {
+      "Type": "int",
+      "Default": 0,
+      "Description": "Reseller mode: the PowerDMARC customer account that holds this tenant's domains, for MP.WEY.POWERDMARC.1002. 0 uses the connection's AccountId, or every customer account when the connection has none."
+    },
+    "WEY.POWERDMARC.IncludeInitialDomains": {
+      "Type": "bool",
+      "Default": false,
+      "Description": "MP.WEY.POWERDMARC.1002 also checks the tenant's *.onmicrosoft.com domains."
+    }
+  },
   "Banner": "assets/banner.png",
   "Guide": "maester-pack.guide.json"
 }

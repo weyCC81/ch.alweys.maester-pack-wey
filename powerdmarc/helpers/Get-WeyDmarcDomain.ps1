@@ -8,10 +8,16 @@ function Get-WEYDmarcDomain {
     the domains of the connected customer account, or of every customer account when the connection has no
     AccountId. The domains are listed per account, so each one knows the account it belongs to; a domain
     that two accounts hold is returned once for each.
+
+    AccountId (Reseller mode) lists the domains of that customer account instead of the connection's.
     #>
     [CmdletBinding()]
     [OutputType([pscustomobject])]
-    param()
+    param(
+        # Reseller mode: the customer account to list. 0 uses the connection's AccountId (every account when
+        # the connection has none).
+        [int] $AccountId = 0
+    )
 
     $state = Connect-WEYDmarcPowerDmarcModule
 
@@ -20,10 +26,11 @@ function Get-WEYDmarcDomain {
         return
     }
 
-    $accounts = if ($state.AccountId -gt 0) {
+    $accountId = if ($AccountId -gt 0) { $AccountId } else { [int]$state.AccountId }
+    $accounts = if ($accountId -gt 0) {
         # The name is only for the report: a token that may list domains but not read the account still works.
-        $account = try { Get-PDAccount -AccountId $state.AccountId -ErrorAction Stop } catch { $null }
-        @([pscustomobject]@{ id = $state.AccountId; name = $(if ($account -and $account.name) { $account.name } else { "Account $($state.AccountId)" }) })
+        $account = try { Get-PDAccount -AccountId $accountId -ErrorAction Stop } catch { $null }
+        @([pscustomobject]@{ id = $accountId; name = $(if ($account -and $account.name) { $account.name } else { "Account $accountId" }) })
     } else {
         @(Get-PDAccount -DateFrom ([datetime]'2000-01-01') -DateTo (Get-Date) -ErrorAction Stop)
     }

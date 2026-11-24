@@ -2,6 +2,20 @@
 
 Every release of the pack, newest first. Install-MtPack shows the version; Update-MtPack moves to a newer one.
 
+## 2.1.0
+
+- **New test MP.WEY.POWERDMARC.1002**: every email domain of the Microsoft 365 tenant is onboarded in PowerDMARC.
+  It reads the tenant's domains from Microsoft Graph (`GET /domains`, read-only) and gives one result per verified
+  domain set up for Email: Passed when PowerDMARC has it, Failed when not, Investigate for a subdomain whose parent
+  domain is onboarded. The result `MP.WEY.POWERDMARC.1002.not-in-tenant` lists the PowerDMARC domains the tenant
+  does not have (Investigate).
+- The pack now also uses **Microsoft Graph**, with the scope `Domain.Read.All` (the default `Connect-Maester`
+  scopes include `Directory.Read.All`, which covers it). MP.WEY.POWERDMARC.1001 still needs only PowerDMARC.
+- Two settings for `GlobalSettings` in `maester-config.json`: `WEY.POWERDMARC.TenantAccountId`, the customer
+  account of this tenant in Reseller mode (0: the connection's AccountId, else every account), and
+  `WEY.POWERDMARC.IncludeInitialDomains`, to check the `*.onmicrosoft.com` domains too.
+- `Get-WEYDmarcDomain` takes `-AccountId` to list another customer account than the connection's.
+
 ## 2.0.1
 
 - Names from PowerDMARC (domain and account) go into result titles and the Account field as plain text, without
